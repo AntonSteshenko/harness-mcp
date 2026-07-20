@@ -36,9 +36,14 @@ type LoadState =
 
 export function FileEditor({ path, onDirtyChange }: FileEditorProps) {
   const [state, setState] = useState<LoadState>({ status: "idle" });
+  // Markdown files open showing the rendered view by default; "Edit" is an
+  // explicit switch, never shown side-by-side with the preview.
+  const [mode, setMode] = useState<"preview" | "edit">("preview");
 
   // Load the file whenever a different path is opened (US1, FR-002).
   useEffect(() => {
+    setMode("preview");
+
     if (!path) {
       setState({ status: "idle" });
       return;
@@ -169,8 +174,39 @@ export function FileEditor({ path, onDirtyChange }: FileEditorProps) {
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
-        <h3 style={{ margin: 0 }}>{session.path}</h3>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8, flexWrap: "wrap" }}>
+        <h3 style={{ margin: 0, overflowWrap: "anywhere" }}>{session.path}</h3>
+        {session.kind === "markdown" && (
+          <div style={{ display: "inline-flex", border: "1px solid #ddd", borderRadius: 6, overflow: "hidden" }}>
+            <button
+              type="button"
+              onClick={() => setMode("preview")}
+              style={{
+                padding: "6px 12px",
+                border: "none",
+                background: mode === "preview" ? "#eee" : "#fff",
+                fontWeight: mode === "preview" ? 600 : 400,
+                cursor: "pointer",
+              }}
+            >
+              Preview
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("edit")}
+              style={{
+                padding: "6px 12px",
+                border: "none",
+                borderLeft: "1px solid #ddd",
+                background: mode === "edit" ? "#eee" : "#fff",
+                fontWeight: mode === "edit" ? 600 : 400,
+                cursor: "pointer",
+              }}
+            >
+              Edit
+            </button>
+          </div>
+        )}
         {dirty && <span style={{ color: "#b8860b" }}>● unsaved changes</span>}
         <button onClick={handleSave} disabled={session.saveState === "saving" || !dirty}>
           {session.saveState === "saving" ? "Saving…" : "Save"}
@@ -183,7 +219,7 @@ export function FileEditor({ path, onDirtyChange }: FileEditorProps) {
         <p style={{ color: "crimson" }}>Save failed: {session.saveError}</p>
       )}
       {session.kind === "markdown" ? (
-        <MarkdownEditor value={session.currentContent} onChange={handleContentChange} />
+        <MarkdownEditor value={session.currentContent} onChange={handleContentChange} mode={mode} />
       ) : (
         <PlainTextEditor value={session.currentContent} onChange={handleContentChange} />
       )}
