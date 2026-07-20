@@ -31,7 +31,7 @@ Per plan.md's Project Structure — new files added to the existing spec 002 Nex
 
 **Purpose**: Install this feature's new dependencies
 
-- [ ] T001 Install `@uiw/react-codemirror`, `@codemirror/lang-markdown`, `react-markdown`, `remark-gfm` (plan.md Technical Context)
+- [X] T001 Install `@uiw/react-codemirror`, `@codemirror/lang-markdown`, `react-markdown`, `remark-gfm` (plan.md Technical Context)
 
 ---
 
@@ -41,11 +41,11 @@ Per plan.md's Project Structure — new files added to the existing spec 002 Nex
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T002 [P] Implement `GET /api/tree` in `app/api/tree/route.ts`, wrapping `listDirectory` (lib/storage/directories.ts); map `not_found`/`storage_unreachable` to `404`/`502` per contracts/api-routes.md (research.md §2)
-- [ ] T003 Implement `GET /api/file` in `app/api/file/route.ts`, wrapping `readFile` (lib/storage/files.ts); map `not_found`/`storage_unreachable` to `404`/`502` per contracts/api-routes.md (research.md §3)
-- [ ] T004 Add `PUT /api/file` to `app/api/file/route.ts`, wrapping `updateFile` (lib/storage/files.ts); same error mapping, plus ensure a failed request never implies content was saved (contracts/api-routes.md, FR-010) (depends on T003 — same file)
-- [ ] T005 [P] Create `app/editor/page.tsx` skeleton: two-panel layout with placeholders for the file tree and the editor area
-- [ ] T006 [P] Create the Editor Session state shape in `app/editor/FileEditor.tsx` skeleton per data-model.md (`path`, `loadedContent`, `currentContent`, `kind`, `dirty`, `saveState`)
+- [X] T002 [P] Implement `GET /api/tree` in `app/api/tree/route.ts`, wrapping `listDirectory` (lib/storage/directories.ts); map `not_found`/`storage_unreachable` to `404`/`502` per contracts/api-routes.md (research.md §2)
+- [X] T003 Implement `GET /api/file` in `app/api/file/route.ts`, wrapping `readFile` (lib/storage/files.ts); map `not_found`/`storage_unreachable` to `404`/`502` per contracts/api-routes.md (research.md §3) — also includes the `422 unsupported` binary-file detection originally scoped as T023 (natural fit while writing this route to match contracts/api-routes.md exactly)
+- [X] T004 Add `PUT /api/file` to `app/api/file/route.ts`, wrapping `updateFile` (lib/storage/files.ts); same error mapping, plus ensure a failed request never implies content was saved (contracts/api-routes.md, FR-010) (depends on T003 — same file)
+- [X] T005 [P] Create `app/editor/page.tsx` skeleton: two-panel layout with placeholders for the file tree and the editor area
+- [X] T006 [P] Create the Editor Session state shape in `app/editor/FileEditor.tsx` skeleton per data-model.md (`path`, `loadedContent`, `currentContent`, `kind`, `dirty`, `saveState`)
 
 **Checkpoint**: Foundation ready - API routes work end-to-end against a running storage stack; page shell renders; user story implementation can now begin
 
@@ -59,14 +59,14 @@ Per plan.md's Project Structure — new files added to the existing spec 002 Nex
 
 ### Implementation for User Story 1
 
-- [ ] T007 [US1] Implement `app/editor/FileTree.tsx`: fetch `GET /api/tree` lazily per directory as the user expands nodes; render an expandable tree; show empty folders clearly rather than looking broken (research.md §2, FR-001)
-- [ ] T008 [US1] Wire tree file-selection to `FileEditor.tsx`: clicking a file calls `GET /api/file` and loads the result into Editor Session state (FR-002)
-- [ ] T009 [US1] Display the loaded file's content (read-only for this story — real editing lands in US2/US3) in `FileEditor.tsx` (FR-002, SC-001)
-- [ ] T010 [US1] Handle `not_found`/`storage_unreachable` responses from `GET /api/tree`/`GET /api/file` with a clear on-screen message in `FileTree.tsx`/`FileEditor.tsx` (Edge Cases)
+- [X] T007 [US1] Implement `app/editor/FileTree.tsx`: fetch `GET /api/tree` lazily per directory as the user expands nodes; render an expandable tree; show empty folders clearly rather than looking broken (research.md §2, FR-001)
+- [X] T008 [US1] Wire tree file-selection to `FileEditor.tsx`: clicking a file calls `GET /api/file` and loads the result into Editor Session state (FR-002)
+- [X] T009 [US1] Display the loaded file's content (read-only for this story — real editing lands in US2/US3) in `FileEditor.tsx` (FR-002, SC-001)
+- [X] T010 [US1] Handle `not_found`/`storage_unreachable` responses from `GET /api/tree`/`GET /api/file` with a clear on-screen message in `FileTree.tsx`/`FileEditor.tsx` (Edge Cases)
 
 ### Validation for User Story 1
 
-- [ ] T011 [US1] Execute `specs/003-web-file-editor/quickstart.md` Section 1 against a running `npm run dev` + spec 001 storage stack; confirm SC-001
+- [X] T011 [US1] Execute `specs/003-web-file-editor/quickstart.md` Section 1 against a running `npm run dev` + spec 001 storage stack; confirm SC-001 — verified live via Playwright: tree loads, lazy-expands, empty folder shows correctly, file content displays
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -80,16 +80,16 @@ Per plan.md's Project Structure — new files added to the existing spec 002 Nex
 
 ### Implementation for User Story 2
 
-- [ ] T012 [US2] Implement `app/editor/MarkdownEditor.tsx`: CodeMirror (`@uiw/react-codemirror` + `@codemirror/lang-markdown`) for the raw-text pane and `react-markdown` + `remark-gfm` for the preview pane, laid out side by side (research.md §4, FR-003)
-- [ ] T013 [US2] Wire the preview to update on every keystroke with no manual refresh (FR-004, SC-002)
-- [ ] T014 [US2] Implement the save action in `FileEditor.tsx`: call `PUT /api/file`; on success reset `loadedContent`/`dirty` and confirm; on failure set `saveState: "error"` and leave `currentContent` untouched (FR-005, FR-008, FR-010, contracts/api-routes.md)
-- [ ] T015 [US2] Render the dirty/unsaved-changes indicator and save success/error UI in `FileEditor.tsx` (FR-008, FR-010)
-- [ ] T016 [US2] Implement the navigation guard in `FileEditor.tsx`: `window.confirm`-style prompt before switching files while dirty, plus a `beforeunload` handler for tab close/reload (FR-009, research.md §7)
-- [ ] T017 [US2] Wire `FileEditor.tsx` to render `MarkdownEditor.tsx` when the open file's `kind` is `"markdown"` (`.md` extension, data-model.md)
+- [X] T012 [US2] Implement `app/editor/MarkdownEditor.tsx`: CodeMirror (`@uiw/react-codemirror` + `@codemirror/lang-markdown`) for the raw-text pane and `react-markdown` + `remark-gfm` for the preview pane, laid out side by side (research.md §4, FR-003)
+- [X] T013 [US2] Wire the preview to update on every keystroke with no manual refresh (FR-004, SC-002)
+- [X] T014 [US2] Implement the save action in `FileEditor.tsx`: call `PUT /api/file`; on success reset `loadedContent`/`dirty` and confirm; on failure set `saveState: "error"` and leave `currentContent` untouched (FR-005, FR-008, FR-010, contracts/api-routes.md)
+- [X] T015 [US2] Render the dirty/unsaved-changes indicator and save success/error UI in `FileEditor.tsx` (FR-008, FR-010)
+- [X] T016 [US2] Implement the navigation guard in `FileEditor.tsx`: `window.confirm`-style prompt before switching files while dirty, plus a `beforeunload` handler for tab close/reload (FR-009, research.md §7)
+- [X] T017 [US2] Wire `FileEditor.tsx` to render `MarkdownEditor.tsx` when the open file's `kind` is `"markdown"` (`.md` extension, data-model.md)
 
 ### Validation for User Story 2
 
-- [ ] T018 [US2] Execute `specs/003-web-file-editor/quickstart.md` Section 2, including stopping the storage stack mid-edit to trigger the save-error path; confirm SC-002, SC-003, SC-004
+- [X] T018 [US2] Execute `specs/003-web-file-editor/quickstart.md` Section 2, including stopping the storage stack mid-edit to trigger the save-error path; confirm SC-002, SC-003, SC-004 — verified live: live preview, save/persist, cancel/accept unsaved-changes dialog, save-error-keeps-edits all confirmed via Playwright
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -103,13 +103,13 @@ Per plan.md's Project Structure — new files added to the existing spec 002 Nex
 
 ### Implementation for User Story 3
 
-- [ ] T019 [US3] Implement `app/editor/PlainTextEditor.tsx`: a plain `<textarea>` bound to the Editor Session's `currentContent`, no Markdown rendering (research.md §5, FR-006)
-- [ ] T020 [US3] Wire `FileEditor.tsx` to render `PlainTextEditor.tsx` when the open file's `kind` is `"text"` (non-`.md`, decodable as text, data-model.md)
-- [ ] T021 [US3] Confirm the save action from T014/T015 works unmodified for `PlainTextEditor.tsx` (same `PUT /api/file` + dirty/saveState flow, FR-007) — fix if the Markdown-specific wiring from US2 accidentally coupled to `MarkdownEditor.tsx`
+- [X] T019 [US3] Implement `app/editor/PlainTextEditor.tsx`: a plain `<textarea>` bound to the Editor Session's `currentContent`, no Markdown rendering (research.md §5, FR-006)
+- [X] T020 [US3] Wire `FileEditor.tsx` to render `PlainTextEditor.tsx` when the open file's `kind` is `"text"` (non-`.md`, decodable as text, data-model.md)
+- [X] T021 [US3] Confirm the save action from T014/T015 works unmodified for `PlainTextEditor.tsx` (same `PUT /api/file` + dirty/saveState flow, FR-007) — verified: `handleSave`/`handleContentChange` in `FileEditor.tsx` are kind-agnostic, no Markdown-specific coupling
 
 ### Validation for User Story 3
 
-- [ ] T022 [US3] Execute `specs/003-web-file-editor/quickstart.md` Section 3; confirm SC-005
+- [X] T022 [US3] Execute `specs/003-web-file-editor/quickstart.md` Section 3; confirm SC-005 — verified live via Playwright: plain.txt opened, edited, saved, persistence confirmed via direct S3 read
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -119,10 +119,10 @@ Per plan.md's Project Structure — new files added to the existing spec 002 Nex
 
 **Purpose**: Binary-file handling, remaining edge cases, and documentation
 
-- [ ] T023 Implement "unsupported" file detection end-to-end: `GET /api/file` in `app/api/file/route.ts` returns `422 unsupported` when content fails UTF-8 decode or the extension is in a small known-binary denylist (research.md §6); `FileEditor.tsx` shows a clear "can't edit this file" message instead of opening an editor (FR-011)
-- [ ] T024 Execute `specs/003-web-file-editor/quickstart.md` Section 4 (open a binary file) and Section 5 (file deleted elsewhere while open, then attempt to save) as final edge-case validation
-- [ ] T025 [P] Add a section to `README.md` documenting the `/editor` URL and its dependency on the spec 001 storage stack and `npm run dev` being up
-- [ ] T026 Cross-check `app/api/tree/route.ts` and `app/api/file/route.ts` response shapes against `specs/003-web-file-editor/contracts/api-routes.md` for drift and fix any found
+- [X] T023 Server side done in T003 (`422 unsupported` from `GET /api/file`); client-side "can't be edited here" message implemented in `FileEditor.tsx` alongside T008-T010 (FR-011)
+- [X] T024 Execute `specs/003-web-file-editor/quickstart.md` Section 4 (open a binary file) and Section 5 (file deleted elsewhere while open, then attempt to save) as final edge-case validation — both verified live in a real browser via Playwright
+- [X] T025 [P] Add a section to `README.md` documenting the `/editor` URL and its dependency on the spec 001 storage stack and `npm run dev` being up
+- [X] T026 Cross-check `app/api/tree/route.ts` and `app/api/file/route.ts` response shapes against `specs/003-web-file-editor/contracts/api-routes.md` for drift and fix any found — verified matching, no drift
 
 ---
 

@@ -59,3 +59,9 @@ npm run dev
 ```
 
 This exposes the MCP endpoint (Streamable HTTP) at `http://localhost:3000/mcp`. It operates against a single, dedicated bucket (`MCP_STORAGE_BUCKET` in `.env.example`, default `mcp-storage`), created automatically on first use — separate from any bucket you create manually via the section above.
+
+## Web File Explorer & Markdown Editor
+
+A browser UI at `/editor` (same app/dependencies as the MCP server above — `docker compose up -d` then `npm run dev` must both be running) lets you browse the `MCP_STORAGE_BUCKET` folder/file tree and edit *existing* files directly: `.md` files open in a split view (raw Markdown left, live-rendered preview right); everything else opens in a plain-text editor. Binary files are detected and shown with a clear "can't be edited here" message instead. Saves are explicit (no autosave) — unsaved changes are indicated, and you're warned before navigating away or closing the tab with changes pending. See [specs/003-web-file-editor/contracts/api-routes.md](specs/003-web-file-editor/contracts/api-routes.md) for the underlying API and [specs/003-web-file-editor/quickstart.md](specs/003-web-file-editor/quickstart.md) for a full walkthrough.
+
+Open it at: `http://localhost:3000/editor`
