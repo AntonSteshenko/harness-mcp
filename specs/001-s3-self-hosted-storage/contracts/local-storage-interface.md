@@ -35,9 +35,9 @@ None. No buckets are created automatically (FR-013 and the `createbuckets` boots
 | Behavior | Guarantee |
 |---|---|
 | Start | `docker compose up` (project-standard invocation) brings the service up; endpoint is reachable within the startup budget in SC-001. |
-| Stop | `docker compose stop` (or `down`, without `-v`) stops the service; data is retained. |
+| Stop | `docker compose stop` (or `down`) stops the service; data is retained in the bind-mounted `./data/minio` host folder (research.md §3). |
 | Restart | Previously stored buckets/objects are present and retrievable after the service comes back up (FR-007). |
-| Reset | A documented procedure (see quickstart.md) permanently removes all stored data (FR-008, SC-004). |
+| Reset | `./scripts/reset-storage.sh` permanently removes all stored data by clearing `./data/minio` via a throwaway container, then restarting (FR-008, SC-004). |
 | Port conflict | Startup fails with Docker's own clear "port already in use" error; no silent fallback (FR-014). |
 | Already running | Re-issuing the start command does not create a duplicate instance; Docker Compose reports the existing service is already up. |
 | Invalid names | Bucket/object operations with malformed names are rejected with a clear S3 API error (FR-006). |

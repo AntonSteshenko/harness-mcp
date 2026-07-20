@@ -7,3 +7,17 @@ Thumbs.db
 
 # Local env overrides (see .env.example for documented defaults)
 .env
+.env*.local
+
+# Node.js / Next.js
+node_modules/
+.next/
+out/
+build/
+*.log
+next-env.d.ts
+.pnpm-debug.log*
+npm-debug.log*
+
+# Local MinIO storage data (bind-mounted, see docker-compose.yml)
+/data/

@@ -23,12 +23,14 @@ All unknowns from the Technical Context have been resolved below; no `NEEDS CLAR
 
 ## 3. Data persistence & reset
 
-**Decision**: Persist MinIO's data directory in a named Docker volume declared in the Compose file. Reset is performed by removing that named volume (`docker compose down -v`, or a thin wrapper script) and restarting.
+**Original decision (superseded 2026-07-20)**: Persist MinIO's data directory in a named Docker volume declared in the Compose file. Reset was performed by removing that named volume (`docker compose down -v`) and restarting.
 
-**Rationale**: Satisfies FR-007 (survives restarts) and FR-008 (full wipe on demand) using only native Docker Compose/volume mechanics — no extra state-tracking code needed. Removing a named volume is well-understood, fast (satisfies SC-004's <30s target), and cannot partially corrupt data the way an in-place directory wipe might.
+**Revised decision (2026-07-20)**: Persist MinIO's data directory in a bind-mounted host folder (`./data/minio:/data`) instead, at the user's request, so the raw storage data is visible/reachable directly on the host filesystem outside Docker. `scripts/reset-storage.sh` was updated accordingly: since `docker compose down -v` no longer has a named volume to remove, the script now clears `./data/minio` via a throwaway `minio/minio` container (`docker run --rm --entrypoint sh -v ...`) instead of a host-side `rm -rf`, because MinIO's container runs as root and would otherwise leave root-owned files a non-root host user can't delete without `sudo`.
+
+**Important caveat (verified empirically)**: bind-mounting exposes MinIO's *internal on-disk format*, not plain readable files. Each object appears on the host as a directory named after its key, containing an `xl.meta` file — a binary, MessagePack-encoded metadata blob (MinIO's "XL" erasure-coding format, used even in this single-drive deployment). Small objects have their actual content **inlined inside `xl.meta`** rather than written as a separate plain file, so there is no way to `cat`/edit an object's content directly from the host filesystem with a text editor. The bind mount gives bucket/key folder structure visibility and Docker-independent persistence, not human-editable files.
 
 **Alternatives considered**:
-- Bind-mounting a host directory — works, but introduces host-OS path/permission differences (notably on Windows/macOS Docker Desktop) that a named volume avoids.
+- Named Docker volume (original decision) — avoids host-OS path/permission differences (notably on Windows/macOS Docker Desktop) and avoids the root-ownership cleanup wrinkle above, but keeps the data invisible to the host filesystem, which is exactly what the user asked to change.
 - Ephemeral (non-persisted) container storage — rejected, fails FR-007 outright.
 
 ## 4. Credentials

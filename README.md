@@ -34,4 +34,28 @@ To permanently wipe all locally stored buckets/objects and start fresh:
 ./scripts/reset-storage.sh
 ```
 
-This stops the service, removes its data volume, and starts it back up with no buckets present.
+This stops the service, clears its data, and starts it back up with no buckets present.
+
+## Where the data lives
+
+Storage data is bind-mounted to `./data/minio` on the host (not a Docker-managed volume), so bucket/object structure is visible outside Docker. Note that MinIO stores each object's content wrapped in its own binary `xl.meta` format (small objects are inlined directly into it) rather than as a plain file — so you can browse the bucket/key folder layout under `./data/minio`, but you can't open an object's content directly in a text editor from there. Use the S3 API (or the web console) to read/write actual content. This folder is git-ignored and owned by `root` on Linux hosts (MinIO's container runs as root); use `./scripts/reset-storage.sh` rather than a manual `rm -rf` to clear it without needing `sudo`.
+
+## S3 Storage MCP Server
+
+An MCP server exposes the local storage above as filesystem-like tools (create/read/update/delete files; create/list/delete directories, recursively; move/rename either) — see [specs/002-s3-mcp-server/contracts/mcp-tools.md](specs/002-s3-mcp-server/contracts/mcp-tools.md) for the full tool list, and [specs/002-s3-mcp-server/quickstart.md](specs/002-s3-mcp-server/quickstart.md) for a runnable walkthrough.
+
+Prerequisites: the storage stack above must be running (`docker compose up -d`).
+
+Install dependencies once:
+
+```sh
+npm install
+```
+
+Start the MCP server:
+
+```sh
+npm run dev
+```
+
+This exposes the MCP endpoint (Streamable HTTP) at `http://localhost:3000/mcp`. It operates against a single, dedicated bucket (`MCP_STORAGE_BUCKET` in `.env.example`, default `mcp-storage`), created automatically on first use — separate from any bucket you create manually via the section above.
