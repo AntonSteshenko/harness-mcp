@@ -18,6 +18,7 @@ build/
 next-env.d.ts
 .pnpm-debug.log*
 npm-debug.log*
+tsconfig.tsbuildinfo
 
 # Local MinIO storage data (bind-mounted, see docker-compose.yml)
 /data/
