@@ -16,5 +16,15 @@ export async function register() {
       console.error(`\nFatal: storage connection is misconfigured — refusing to start.\n${(err as Error).message}\n`);
       process.exit(1);
     }
+
+    // spec 008-mcp-oauth, FR-009: same fail-fast pattern for the dedicated
+    // OAuth owner credential (separate from the storage credentials above).
+    const { verifyOwnerCredentialConfig } = await import("./lib/oauth/config");
+    try {
+      verifyOwnerCredentialConfig();
+    } catch (err) {
+      console.error(`\nFatal: OAuth owner credential is misconfigured — refusing to start.\n${(err as Error).message}\n`);
+      process.exit(1);
+    }
   }
 }

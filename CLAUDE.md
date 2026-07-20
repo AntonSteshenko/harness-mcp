@@ -1,5 +1,5 @@
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
-at specs/007-s3-storage-config/plan.md
+at specs/008-mcp-oauth/plan.md
 <!-- SPECKIT END -->

@@ -76,6 +76,24 @@ npm run dev
 
 This exposes the MCP endpoint (Streamable HTTP) at `http://localhost:3000/mcp`. It operates against a single, configured bucket (`S3_BUCKET` in `frontend/.env.example`, default `mcp-storage`) on whichever S3-compatible backend `frontend/.env.local` points at — separate from any bucket you create manually via the local-MinIO section above.
 
+### Connecting AI assistants (ChatGPT, Claude, etc.) via OAuth
+
+The MCP server requires OAuth (spec 008-mcp-oauth) before any tool call is allowed — this is what lets you add it as a remote connector in hosted AI assistants. One-time setup, in addition to the storage setup above:
+
+1. Generate an owner sign-in credential (separate from the S3/MinIO credentials — this one gates who can approve AI assistants, not storage access):
+   ```sh
+   cd frontend
+   node scripts/hash-owner-password.mjs '<choose a password>'
+   ```
+2. Add the printed hash, plus a username, to `frontend/.env.local`:
+   ```
+   OAUTH_OWNER_USERNAME=owner
+   OAUTH_OWNER_PASSWORD_HASH=<printed value>
+   ```
+3. Start the server (`npm run dev`) — it fails fast at startup if these are missing or malformed, same as the storage settings above.
+
+To add the server as a connector: in ChatGPT or Claude's "add connector"/"add MCP server" flow, point it at `http://localhost:3000/mcp` (or your deployed URL). The assistant discovers the OAuth flow automatically; you'll be prompted to sign in with the credential from step 2 and approve the connection. See [specs/008-mcp-oauth/quickstart.md](specs/008-mcp-oauth/quickstart.md) for the full walkthrough, including reviewing and revoking connected assistants at `/settings/connected-apps`.
+
 ## Web File Explorer & Markdown Editor
 
 A browser UI at `/editor` (same app/dependencies as the MCP server above — `docker compose up -d` then `npm run dev` must both be running) lets you browse the `MCP_STORAGE_BUCKET` folder/file tree and edit *existing* files directly: `.md` files open in a split view (raw Markdown left, live-rendered preview right); everything else opens in a plain-text editor. Binary files are detected and shown with a clear "can't be edited here" message instead. Saves are explicit (no autosave) — unsaved changes are indicated, and you're warned before navigating away or closing the tab with changes pending. See [specs/003-web-file-editor/contracts/api-routes.md](specs/003-web-file-editor/contracts/api-routes.md) for the underlying API and [specs/003-web-file-editor/quickstart.md](specs/003-web-file-editor/quickstart.md) for a full walkthrough.

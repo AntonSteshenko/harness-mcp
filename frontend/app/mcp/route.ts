@@ -1,5 +1,6 @@
-import { createMcpHandler } from "mcp-handler";
+import { createMcpHandler, withMcpAuth } from "mcp-handler";
 import { registerTools } from "@/lib/mcp-tools";
+import { verifyAccessToken } from "@/lib/oauth/tokens";
 
 const handler = createMcpHandler(
   (server) => {
@@ -14,4 +15,18 @@ const handler = createMcpHandler(
   },
 );
 
-export { handler as GET, handler as POST };
+// spec 008-mcp-oauth, FR-001: every tool request must carry a valid,
+// unexpired, unrevoked access token before any storage operation runs.
+const authHandler = withMcpAuth(
+  handler,
+  async (_req, bearerToken) => {
+    if (!bearerToken) return undefined;
+    return verifyAccessToken(bearerToken);
+  },
+  {
+    required: true,
+    resourceMetadataPath: "/.well-known/oauth-protected-resource",
+  },
+);
+
+export { authHandler as GET, authHandler as POST };
