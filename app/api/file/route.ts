@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readFile, updateFile } from "@/lib/storage/files";
+import { createFile, deleteFile, readFile, updateFile } from "@/lib/storage/files";
 import { StorageError } from "@/lib/storage/errors";
 
 const STATUS_BY_CODE: Record<StorageError["code"], number> = {
@@ -66,5 +66,33 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json(result);
   } catch (err) {
     return errorResponse(err, "Unexpected error updating file");
+  }
+}
+
+export async function POST(request: NextRequest) {
+  const body = (await request.json()) as { path?: string; content?: string };
+  if (!body.path) {
+    return NextResponse.json({ code: "not_found", message: "path is required" }, { status: 404 });
+  }
+
+  try {
+    const result = await createFile(body.path, body.content ?? "");
+    return NextResponse.json(result, { status: 201 });
+  } catch (err) {
+    return errorResponse(err, "Unexpected error creating file");
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const path = request.nextUrl.searchParams.get("path");
+  if (!path) {
+    return NextResponse.json({ code: "not_found", message: "path is required" }, { status: 404 });
+  }
+
+  try {
+    const result = await deleteFile(path);
+    return NextResponse.json(result);
+  } catch (err) {
+    return errorResponse(err, "Unexpected error deleting file");
   }
 }
