@@ -93,4 +93,6 @@ To add the server as a connector: in ChatGPT or Claude's "add connector"/"add MC
 
 A browser UI at `/editor` (same app/dependencies as the MCP server above — `docker compose up -d` then `npm run dev` must both be running) lets you browse the `MCP_STORAGE_BUCKET` folder/file tree and edit *existing* files directly: `.md` files open in a split view (raw Markdown left, live-rendered preview right); everything else opens in a plain-text editor. Binary files are detected and shown with a clear "can't be edited here" message instead. Saves are explicit (no autosave) — unsaved changes are indicated, and you're warned before navigating away or closing the tab with changes pending. See [specs/003-web-file-editor/contracts/api-routes.md](specs/003-web-file-editor/contracts/api-routes.md) for the underlying API and [specs/003-web-file-editor/quickstart.md](specs/003-web-file-editor/quickstart.md) for a full walkthrough.
 
+`/editor` requires signing in first, with the same owner credential used for the MCP connector flow above — a signed-out visit redirects to the sign-in screen, and a session started from either entry point covers both. See [specs/009-editor-login-gate/quickstart.md](specs/009-editor-login-gate/quickstart.md) for the full walkthrough.
+
 Open it at: `http://localhost:3000/editor`

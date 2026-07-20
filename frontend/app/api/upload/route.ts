@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireOwnerSession } from "@/lib/oauth/session";
 import { createFile } from "@/lib/storage/files";
 import { normalizeFilePath } from "@/lib/storage/paths";
 import { StorageError } from "@/lib/storage/errors";
@@ -29,6 +30,9 @@ function isMarkdownPath(path: string): boolean {
  * discard the rest of the batch (Edge Cases).
  */
 export async function POST(request: NextRequest) {
+  const authError = await requireOwnerSession();
+  if (authError) return authError;
+
   const body = (await request.json().catch(() => null)) as UploadRequestBody | null;
 
   if (!body || typeof body.basePath !== "string" || !Array.isArray(body.files)) {

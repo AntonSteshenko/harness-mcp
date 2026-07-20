@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
+import { authedFetch } from "@/lib/editorFetch";
 import {
   ChevronIcon,
   DownloadIcon,
@@ -243,7 +244,7 @@ function DirectoryNode({
     setLoading(true);
     setError(null);
 
-    fetch(`/api/tree?path=${encodeURIComponent(path)}`)
+    authedFetch(`/api/tree?path=${encodeURIComponent(path)}`)
       .then(async (res) => {
         const data = await res.json();
         if (!res.ok) throw new Error(data.message ?? "Failed to load directory");
@@ -267,7 +268,7 @@ function DirectoryNode({
    * failure the previously-shown listing is left as-is. */
   async function refreshEntries() {
     try {
-      const res = await fetch(`/api/tree?path=${encodeURIComponent(path)}`);
+      const res = await authedFetch(`/api/tree?path=${encodeURIComponent(path)}`);
       const data = await res.json();
       if (res.ok) setEntries(data as TreeListing);
     } catch {
@@ -312,7 +313,7 @@ function DirectoryNode({
 
     setBusy(true);
     try {
-      const res = await fetch("/api/upload", {
+      const res = await authedFetch("/api/upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ basePath: path, files: batch }),
@@ -343,7 +344,7 @@ function DirectoryNode({
   async function handleDownloadFolder() {
     setBusy(true);
     try {
-      const res = await fetch(`/api/download-zip?path=${encodeURIComponent(path)}`);
+      const res = await authedFetch(`/api/download-zip?path=${encodeURIComponent(path)}`);
       if (!res.ok) {
         const data = await res.json().catch(() => ({ message: "Download failed" }));
         window.alert(data.message ?? "Nothing to download.");
@@ -373,7 +374,7 @@ function DirectoryNode({
 
     setBusy(true);
     try {
-      const res = await fetch(`/api/file?path=${encodeURIComponent(filePath)}`, { method: "DELETE" });
+      const res = await authedFetch(`/api/file?path=${encodeURIComponent(filePath)}`, { method: "DELETE" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? "Delete failed");
 
@@ -402,7 +403,7 @@ function DirectoryNode({
 
     setBusy(true);
     try {
-      const res = await fetch("/api/file", {
+      const res = await authedFetch("/api/file", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ path: targetPath, content: "" }),
@@ -433,7 +434,7 @@ function DirectoryNode({
 
     setBusy(true);
     try {
-      const res = await fetch(`/api/directory?path=${encodeURIComponent(path)}`, { method: "DELETE" });
+      const res = await authedFetch(`/api/directory?path=${encodeURIComponent(path)}`, { method: "DELETE" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? "Delete failed");
 
@@ -456,7 +457,7 @@ function DirectoryNode({
 
     setBusy(true);
     try {
-      const res = await fetch("/api/directory", {
+      const res = await authedFetch("/api/directory", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ path: targetPath }),

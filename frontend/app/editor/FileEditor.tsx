@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { authedFetch } from "@/lib/editorFetch";
 import { MarkdownEditor } from "./MarkdownEditor";
 import { PlainTextEditor } from "./PlainTextEditor";
 
@@ -52,7 +53,7 @@ export function FileEditor({ path, onDirtyChange }: FileEditorProps) {
     let cancelled = false;
     setState({ status: "loading" });
 
-    fetch(`/api/file?path=${encodeURIComponent(path)}`)
+    authedFetch(`/api/file?path=${encodeURIComponent(path)}`)
       .then(async (res) => {
         const data = await res.json();
         if (cancelled) return;
@@ -122,7 +123,7 @@ export function FileEditor({ path, onDirtyChange }: FileEditorProps) {
     );
 
     try {
-      const res = await fetch("/api/file", {
+      const res = await authedFetch("/api/file", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ path: currentPath, content: currentContent }),

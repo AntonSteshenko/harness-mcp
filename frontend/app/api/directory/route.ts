@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireOwnerSession } from "@/lib/oauth/session";
 import { createDirectory, deleteDirectory } from "@/lib/storage/directories";
 import { StorageError } from "@/lib/storage/errors";
 
@@ -19,6 +20,9 @@ function errorResponse(err: unknown, fallbackMessage: string) {
 }
 
 export async function POST(request: NextRequest) {
+  const authError = await requireOwnerSession();
+  if (authError) return authError;
+
   const body = (await request.json()) as { path?: string };
   if (!body.path) {
     return NextResponse.json({ code: "not_found", message: "path is required" }, { status: 404 });
@@ -33,6 +37,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  const authError = await requireOwnerSession();
+  if (authError) return authError;
+
   const path = request.nextUrl.searchParams.get("path");
   if (!path) {
     return NextResponse.json({ code: "not_found", message: "path is required" }, { status: 404 });

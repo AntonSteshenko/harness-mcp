@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireOwnerSession } from "@/lib/oauth/session";
 import { createFile, deleteFile, readFile, updateFile } from "@/lib/storage/files";
 import { StorageError } from "@/lib/storage/errors";
 
@@ -33,6 +34,9 @@ function errorResponse(err: unknown, fallbackMessage: string) {
 }
 
 export async function GET(request: NextRequest) {
+  const authError = await requireOwnerSession();
+  if (authError) return authError;
+
   const path = request.nextUrl.searchParams.get("path");
   if (!path) {
     return NextResponse.json({ code: "not_found", message: "path is required" }, { status: 404 });
@@ -53,6 +57,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  const authError = await requireOwnerSession();
+  if (authError) return authError;
+
   const body = (await request.json()) as { path?: string; content?: string };
   if (!body.path || body.content === undefined) {
     return NextResponse.json(
@@ -70,6 +77,9 @@ export async function PUT(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const authError = await requireOwnerSession();
+  if (authError) return authError;
+
   const body = (await request.json()) as { path?: string; content?: string };
   if (!body.path) {
     return NextResponse.json({ code: "not_found", message: "path is required" }, { status: 404 });
@@ -84,6 +94,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  const authError = await requireOwnerSession();
+  if (authError) return authError;
+
   const path = request.nextUrl.searchParams.get("path");
   if (!path) {
     return NextResponse.json({ code: "not_found", message: "path is required" }, { status: 404 });

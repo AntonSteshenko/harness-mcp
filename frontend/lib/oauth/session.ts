@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 import { getRecord, putRecord } from "./store";
 
 /**
@@ -49,4 +50,17 @@ export async function hasActiveOwnerSession(): Promise<boolean> {
   if (!session) return false;
 
   return new Date(session.expiresAt).getTime() > Date.now();
+}
+
+/**
+ * Guard for API route handlers: returns a 401 response when there's no
+ * active owner session, or `null` when the caller may proceed. Used by the
+ * editor's file endpoints (spec 009) alongside `hasActiveOwnerSession()`,
+ * which the editor page itself uses directly for its server-side redirect.
+ */
+export async function requireOwnerSession(): Promise<NextResponse | null> {
+  const signedIn = await hasActiveOwnerSession();
+  if (signedIn) return null;
+
+  return NextResponse.json({ code: "unauthorized", message: "Sign in required" }, { status: 401 });
 }

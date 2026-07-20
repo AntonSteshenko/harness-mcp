@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireOwnerSession } from "@/lib/oauth/session";
 import { listDirectory } from "@/lib/storage/directories";
 import { StorageError } from "@/lib/storage/errors";
 
@@ -10,6 +11,9 @@ const STATUS_BY_CODE: Record<StorageError["code"], number> = {
 };
 
 export async function GET(request: NextRequest) {
+  const authError = await requireOwnerSession();
+  if (authError) return authError;
+
   const path = request.nextUrl.searchParams.get("path") ?? "";
 
   try {
