@@ -8,7 +8,7 @@ This guide validates the feature end-to-end against spec.md's acceptance scenari
 
 1. The storage backend is running and configured per spec 007 (`docker compose up -d` from the repo root; `frontend/.env.local` set up).
 2. Dependencies installed: `npm install` from `frontend/`.
-3. New owner-credential env vars set in `frontend/.env.local` (data-model.md `OwnerCredential`): `OAUTH_OWNER_USERNAME` and `OAUTH_OWNER_PASSWORD_HASH` (generate the hash value using the helper script/command documented in tasks.md).
+3. New owner-credential env vars set in `frontend/.env.local` (data-model.md `OwnerCredential`): `OAUTH_OWNER_USERNAME` and `OAUTH_OWNER_PASSWORD`.
 4. `npm run dev` from `frontend/`, so the app (including the new `/oauth/*` routes and `/mcp`) is reachable at `http://localhost:3000`.
 
 ## 1. Connect a client end-to-end (validates User Story 1, FR-002, FR-003, FR-005, SC-001)
@@ -18,7 +18,7 @@ Using any MCP client that supports OAuth discovery (or a manual walkthrough with
 1. Point the client at `http://localhost:3000/mcp`. It fetches `/.well-known/oauth-protected-resource`, then the Authorization Server's `/.well-known/oauth-authorization-server`.
 2. The client registers itself via `POST /oauth/register` and receives a `client_id`.
 3. The client opens `GET /oauth/authorize` with PKCE parameters. Since there's no owner session yet, you're redirected to `/oauth/login`.
-4. Sign in with `OAUTH_OWNER_USERNAME` / the password matching `OAUTH_OWNER_PASSWORD_HASH`. You land on the consent screen showing the client's name.
+4. Sign in with `OAUTH_OWNER_USERNAME` / `OAUTH_OWNER_PASSWORD`. You land on the consent screen showing the client's name.
 5. Approve. You're redirected back to the client with an authorization code; the client exchanges it at `POST /oauth/token` for an access + refresh token.
 6. The client calls an MCP tool (e.g. list files).
 

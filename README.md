@@ -80,19 +80,14 @@ This exposes the MCP endpoint (Streamable HTTP) at `http://localhost:3000/mcp`. 
 
 The MCP server requires OAuth (spec 008-mcp-oauth) before any tool call is allowed — this is what lets you add it as a remote connector in hosted AI assistants. One-time setup, in addition to the storage setup above:
 
-1. Generate an owner sign-in credential (separate from the S3/MinIO credentials — this one gates who can approve AI assistants, not storage access):
-   ```sh
-   cd frontend
-   node scripts/hash-owner-password.mjs '<choose a password>'
-   ```
-2. Add the printed hash, plus a username, to `frontend/.env.local`:
+1. Set an owner sign-in credential in `frontend/.env.local` (separate from the S3/MinIO credentials above — this one gates who can approve AI assistants, not storage access):
    ```
    OAUTH_OWNER_USERNAME=owner
-   OAUTH_OWNER_PASSWORD_HASH=<printed value>
+   OAUTH_OWNER_PASSWORD=<choose a password>
    ```
-3. Start the server (`npm run dev`) — it fails fast at startup if these are missing or malformed, same as the storage settings above.
+2. Start the server (`npm run dev`) — it fails fast at startup if these are missing, same as the storage settings above.
 
-To add the server as a connector: in ChatGPT or Claude's "add connector"/"add MCP server" flow, point it at `http://localhost:3000/mcp` (or your deployed URL). The assistant discovers the OAuth flow automatically; you'll be prompted to sign in with the credential from step 2 and approve the connection. See [specs/008-mcp-oauth/quickstart.md](specs/008-mcp-oauth/quickstart.md) for the full walkthrough, including reviewing and revoking connected assistants at `/settings/connected-apps`.
+To add the server as a connector: in ChatGPT or Claude's "add connector"/"add MCP server" flow, point it at `http://localhost:3000/mcp` (or your deployed URL). The assistant discovers the OAuth flow automatically; you'll be prompted to sign in with the credential from step 1 and approve the connection. See [specs/008-mcp-oauth/quickstart.md](specs/008-mcp-oauth/quickstart.md) for the full walkthrough, including reviewing and revoking connected assistants at `/settings/connected-apps`.
 
 ## Web File Explorer & Markdown Editor
 

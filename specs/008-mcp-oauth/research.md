@@ -41,11 +41,11 @@ This app is a Next.js 16 App Router project with zero Express dependency today, 
 
 ## 4. Owner credential storage and verification (FR-009)
 
-**Decision**: The dedicated owner credential is a username + password configured via new environment variables (`OAUTH_OWNER_USERNAME`, `OAUTH_OWNER_PASSWORD_HASH`), following the same `readXConfig()` / `validateXConfig()` / fail-fast-at-startup pattern already used for storage config (`lib/storage/config.ts`, `instrumentation.ts`). Only a salted hash of the password (Node's built-in `crypto.scrypt`, no new dependency) is ever stored/configured — never the plaintext password.
+**Decision**: The dedicated owner credential is a username + password configured via new environment variables (`OAUTH_OWNER_USERNAME`, `OAUTH_OWNER_PASSWORD`), following the same `readXConfig()` / `validateXConfig()` / fail-fast-at-startup pattern already used for storage config (`lib/storage/config.ts`, `instrumentation.ts`). The password is stored and compared as plain text, verified with a timing-safe comparison (Node's built-in `crypto.timingSafeEqual`).
 
-**Rationale**: Matches the existing project convention exactly (env-var configuration, validated once at startup, fails fast per spec 007's established pattern) and keeps this credential fully independent from the S3/MinIO storage credentials per the Clarifications session, without introducing a user-accounts system for what is, per spec.md's Assumptions, a single-owner tool.
+**Rationale**: Matches the existing project convention exactly (env-var configuration, validated once at startup, fails fast per spec 007's established pattern) and keeps this credential fully independent from the S3/MinIO storage credentials per the Clarifications session, without introducing a user-accounts system for what is, per spec.md's Assumptions, a single-owner tool. Plain text was chosen over a hash (revised from this document's original decision) at the owner's explicit request, trading defense-in-depth around the credential's own storage location for a simpler one-step setup — a reasonable trade for a single-owner self-hosted tool whose owner already controls the machine `.env.local` lives on.
 
-**Alternatives considered**: Storing the plaintext password in an env var and comparing directly. Rejected — unnecessary exposure of a long-lived secret in process environment/logs when a one-way hash comparison costs nothing extra.
+**Alternatives considered**: A salted hash (`crypto.scrypt`), compared one-way. This was the original decision here — rejected on revision because the one extra exposure surface it closed (the password appearing in process environment/`.env.local`) was judged not worth the setup step (a separate hash-generation script) for this project's threat model.
 
 ## 5. Token format
 

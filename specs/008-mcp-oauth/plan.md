@@ -80,7 +80,7 @@ frontend/
 │   ├── storage/                             # existing (spec 001/002/007) — unchanged
 │   ├── mcp-tools/                           # existing — unchanged
 │   └── oauth/                               # new
-│       ├── config.ts                        # OAUTH_OWNER_USERNAME / OAUTH_OWNER_PASSWORD_HASH (data-model.md OwnerCredential)
+│       ├── config.ts                        # OAUTH_OWNER_USERNAME / OAUTH_OWNER_PASSWORD (data-model.md OwnerCredential)
 │       ├── store.ts                         # S3-backed read/write for .oauth/* records (data-model.md)
 │       ├── pkce.ts                          # S256 challenge/verifier check (Web Crypto)
 │       ├── tokens.ts                        # opaque token issuance/verification (research.md §5)

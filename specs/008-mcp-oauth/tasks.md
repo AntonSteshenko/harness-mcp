@@ -184,3 +184,4 @@ Task: "Implement owner session cookie in frontend/lib/oauth/session.ts"
 - [P] tasks touch different files with no dependency between them.
 - Every task names an exact file path so it is directly actionable.
 - Commit after each task or logical group, consistent with prior features in this repo.
+- **Post-implementation revision**: T001, T002, T006, T007, T022 originally implemented `OAUTH_OWNER_PASSWORD_HASH` (scrypt-hashed) per the plan at the time. At the owner's explicit request afterward, this was changed to a plain-text `OAUTH_OWNER_PASSWORD` (T002's hash-generation script was removed as it's no longer used) — see research.md §4 for the revised decision and rationale. The task descriptions above are left as a historical record of what was originally built; `research.md`, `data-model.md`, `plan.md`, and `quickstart.md` reflect the current, revised design.

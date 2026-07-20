@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
   }
 
   const config = readOwnerCredentialConfig();
-  const valid = username === config.username && verifyOwnerPassword(password, config.passwordHash);
+  const valid = username === config.username && verifyOwnerPassword(password, config.password);
 
   if (!valid) {
     await recordLoginFailure();

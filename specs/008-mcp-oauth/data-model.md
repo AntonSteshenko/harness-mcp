@@ -72,7 +72,7 @@ The single dedicated sign-in identity (spec.md's **Owner Credential**, FR-009). 
 | Field | Type | Notes |
 |---|---|---|
 | `username` | string | From `OAUTH_OWNER_USERNAME`. |
-| `passwordHash` | string | From `OAUTH_OWNER_PASSWORD_HASH` — a `scrypt` hash, never the plaintext password (research.md §4). |
+| `password` | string | From `OAUTH_OWNER_PASSWORD` — stored and compared as plain text, verified with a timing-safe comparison (research.md §4). |
 
 ## LoginAttemptState
 
