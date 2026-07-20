@@ -2,6 +2,8 @@
 
 Local self-hosted S3-compatible object storage for development, powered by [MinIO](https://min.io/) and Docker Compose. See [specs/001-s3-self-hosted-storage/quickstart.md](specs/001-s3-self-hosted-storage/quickstart.md) for a full end-to-end validation walkthrough.
 
+The Next.js app (web editor + MCP server) lives entirely in [`frontend/`](frontend/) — that's the folder to point a future Vercel project's Root Directory setting at (see [specs/006-frontend-folder-structure](specs/006-frontend-folder-structure/spec.md)). Everything else at the repo root (`docker-compose.yml`, `data/`, `scripts/`) is local-dev infrastructure that isn't deployed.
+
 ## Getting Started
 
 This project includes a self-hosted, S3-compatible object storage service (MinIO) for local development. It runs entirely on your machine — no cloud account or credentials required.
@@ -49,12 +51,14 @@ Prerequisites: the storage stack above must be running (`docker compose up -d`).
 Install dependencies once:
 
 ```sh
+cd frontend
 npm install
 ```
 
 Start the MCP server:
 
 ```sh
+cd frontend
 npm run dev
 ```
 
