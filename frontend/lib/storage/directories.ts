@@ -1,5 +1,5 @@
 import { DeleteObjectsCommand, ListObjectsV2Command, PutObjectCommand } from "@aws-sdk/client-s3";
-import { BUCKET, ensureBucket, s3Client } from "./client";
+import { BUCKET, s3Client } from "./client";
 import { alreadyExists, notFound, typeMismatch, wrapStorageError } from "./errors";
 import { headObjectExists, normalizeDirectoryPath, normalizeFilePath } from "./paths";
 
@@ -13,7 +13,6 @@ export interface DirectoryEntry {
  * Idempotent. Rejects with `already_exists` if a file exists at `path` (FR-007, FR-012).
  */
 export async function createDirectory(path: string): Promise<{ path: string; created: true }> {
-  await ensureBucket();
   const dirKey = normalizeDirectoryPath(path);
   const fileKey = normalizeFilePath(path);
 
@@ -34,7 +33,6 @@ export async function createDirectory(path: string): Promise<{ path: string; cre
  * if nothing exists there; type_mismatch if `path` is a file.
  */
 export async function listDirectory(path: string): Promise<{ path: string } & DirectoryEntry> {
-  await ensureBucket();
   const dirKey = normalizeDirectoryPath(path);
   const fileKey = normalizeFilePath(path);
 
@@ -76,7 +74,6 @@ export async function listDirectory(path: string): Promise<{ path: string } & Di
 export async function deleteDirectory(
   path: string,
 ): Promise<{ path: string; deleted: true; filesRemoved: number }> {
-  await ensureBucket();
   const dirKey = normalizeDirectoryPath(path);
   const fileKey = normalizeFilePath(path);
 

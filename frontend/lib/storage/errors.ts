@@ -14,6 +14,28 @@ export class StorageError extends Error {
   }
 }
 
+export type StorageConfigErrorCode =
+  | "missing_config"
+  | "invalid_config"
+  | "endpoint_unreachable"
+  | "credentials_rejected"
+  | "bucket_not_found";
+
+/**
+ * Thrown by lib/storage/config.ts and lib/storage/client.ts's startup checks
+ * (spec 007-s3-storage-config, FR-004/FR-005). Never carries a secret value —
+ * messages reference env var names only (FR-008).
+ */
+export class StorageConfigError extends Error {
+  code: StorageConfigErrorCode;
+
+  constructor(code: StorageConfigErrorCode, message: string) {
+    super(message);
+    this.name = "StorageConfigError";
+    this.code = code;
+  }
+}
+
 export function notFound(path: string): StorageError {
   return new StorageError("not_found", `No file or directory exists at "${path}"`);
 }

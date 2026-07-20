@@ -1,5 +1,5 @@
 import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
-import { BUCKET, ensureBucket, s3Client } from "./client";
+import { BUCKET, s3Client } from "./client";
 import { alreadyExists, notFound, typeMismatch, wrapStorageError } from "./errors";
 import {
   hasAnyObjectWithPrefix,
@@ -24,7 +24,6 @@ export interface FileContent extends FileMetadata {
  * Rejects with `already_exists` if a directory occupies `path` (FR-002, FR-012).
  */
 export async function createFile(path: string, content: string): Promise<FileMetadata> {
-  await ensureBucket();
   const key = normalizeFilePath(path);
 
   try {
@@ -44,7 +43,6 @@ export async function createFile(path: string, content: string): Promise<FileMet
 
 /** Reads the full content of the file at `path` (FR-003). */
 export async function readFile(path: string): Promise<FileContent> {
-  await ensureBucket();
   const key = normalizeFilePath(path);
 
   try {
@@ -73,7 +71,6 @@ export async function readFile(path: string): Promise<FileContent> {
  * `not_found` if missing; `type_mismatch` if `path` is a directory.
  */
 export async function updateFile(path: string, content: string): Promise<FileMetadata> {
-  await ensureBucket();
   const key = normalizeFilePath(path);
 
   try {
@@ -93,7 +90,6 @@ export async function updateFile(path: string, content: string): Promise<FileMet
 
 /** Deletes the file at `path` (FR-005). */
 export async function deleteFile(path: string): Promise<{ path: string; deleted: true }> {
-  await ensureBucket();
   const key = normalizeFilePath(path);
 
   try {

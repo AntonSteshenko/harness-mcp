@@ -42,11 +42,23 @@ This stops the service, clears its data, and starts it back up with no buckets p
 
 Storage data is bind-mounted to `./data/minio` on the host (not a Docker-managed volume), so bucket/object structure is visible outside Docker. Note that MinIO stores each object's content wrapped in its own binary `xl.meta` format (small objects are inlined directly into it) rather than as a plain file — so you can browse the bucket/key folder layout under `./data/minio`, but you can't open an object's content directly in a text editor from there. Use the S3 API (or the web console) to read/write actual content. This folder is git-ignored and owned by `root` on Linux hosts (MinIO's container runs as root); use `./scripts/reset-storage.sh` rather than a manual `rm -rf` to clear it without needing `sudo`.
 
+## Configuring the app's storage connection
+
+The Next.js app (`frontend/`) connects to any S3-compatible storage backend — not only the local MinIO instance above — via environment variables it reads at startup (see [specs/007-s3-storage-config](specs/007-s3-storage-config/spec.md)). These are separate from the repo-root `.env.example` above, which only configures the local MinIO *container*: Next.js loads env files from its own project root, so the app's own settings belong in `frontend/.env.local`, copied from [`frontend/.env.example`](frontend/.env.example):
+
+```sh
+cp frontend/.env.example frontend/.env.local
+```
+
+The defaults match the local MinIO instance started above. To point the app at a different S3-compatible provider, edit `frontend/.env.local` (endpoint, region, access key, secret key, bucket, and path-style vs. virtual-hosted-style addressing) and restart the app — no code changes required.
+
+The configured bucket (`S3_BUCKET`) **must already exist** — the app validates the connection at startup and fails fast with a clear error if required settings are missing, the endpoint is unreachable, credentials are rejected, or the bucket doesn't exist, rather than starting broken or failing later. For the local MinIO instance, create the bucket once via the web console (`http://localhost:9001`) or any S3-compatible CLI before starting the app — see [specs/007-s3-storage-config/quickstart.md](specs/007-s3-storage-config/quickstart.md) for the full walkthrough.
+
 ## S3 Storage MCP Server
 
-An MCP server exposes the local storage above as filesystem-like tools (create/read/update/delete files; create/list/delete directories, recursively; move/rename either) — see [specs/002-s3-mcp-server/contracts/mcp-tools.md](specs/002-s3-mcp-server/contracts/mcp-tools.md) for the full tool list, and [specs/002-s3-mcp-server/quickstart.md](specs/002-s3-mcp-server/quickstart.md) for a runnable walkthrough.
+An MCP server exposes the configured storage above as filesystem-like tools (create/read/update/delete files; create/list/delete directories, recursively; move/rename either) — see [specs/002-s3-mcp-server/contracts/mcp-tools.md](specs/002-s3-mcp-server/contracts/mcp-tools.md) for the full tool list, and [specs/002-s3-mcp-server/quickstart.md](specs/002-s3-mcp-server/quickstart.md) for a runnable walkthrough.
 
-Prerequisites: the storage stack above must be running (`docker compose up -d`).
+Prerequisites: the storage backend must be running and reachable (e.g. `docker compose up -d` for local MinIO), its bucket must already exist, and `frontend/.env.local` must be set up per the section above.
 
 Install dependencies once:
 
@@ -62,7 +74,7 @@ cd frontend
 npm run dev
 ```
 
-This exposes the MCP endpoint (Streamable HTTP) at `http://localhost:3000/mcp`. It operates against a single, dedicated bucket (`MCP_STORAGE_BUCKET` in `.env.example`, default `mcp-storage`), created automatically on first use — separate from any bucket you create manually via the section above.
+This exposes the MCP endpoint (Streamable HTTP) at `http://localhost:3000/mcp`. It operates against a single, configured bucket (`S3_BUCKET` in `frontend/.env.example`, default `mcp-storage`) on whichever S3-compatible backend `frontend/.env.local` points at — separate from any bucket you create manually via the local-MinIO section above.
 
 ## Web File Explorer & Markdown Editor
 

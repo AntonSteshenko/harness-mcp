@@ -1,5 +1,5 @@
 import { CopyObjectCommand, DeleteObjectsCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
-import { BUCKET, ensureBucket, s3Client } from "./client";
+import { BUCKET, s3Client } from "./client";
 import { alreadyExists, notFound, wrapStorageError } from "./errors";
 import { normalizeDirectoryPath, normalizeFilePath, statPath } from "./paths";
 
@@ -41,8 +41,6 @@ export async function move(
   sourcePath: string,
   destinationPath: string,
 ): Promise<{ sourcePath: string; destinationPath: string; moved: true }> {
-  await ensureBucket();
-
   try {
     const kind = await statPath(sourcePath);
     if (kind === "none") throw notFound(sourcePath);
