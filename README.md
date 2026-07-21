@@ -76,6 +76,10 @@ npm run dev
 
 This exposes the MCP endpoint (Streamable HTTP) at `http://localhost:3000/mcp`. It operates against a single, configured bucket (`S3_BUCKET` in `frontend/.env.example`, default `mcp-storage`) on whichever S3-compatible backend `frontend/.env.local` points at — separate from any bucket you create manually via the local-MinIO section above.
 
+### Dynamic tool descriptions from a bootstrap file
+
+Optionally set `MCP_BOOTSTRAP_PATH` in `frontend/.env.local` (e.g. `MCP_BOOTSTRAP_PATH=assistant/AGENTS.md`) to a Markdown file already in storage. When set, every tool's description shown to a connecting client is prepended with guidance generated from that file's optional `<!-- mcp-context: ... -->` and `<!-- mcp-triggers: ... -->` HTML-comment markers — telling the client what the storage is for, when to use it, and to read the bootstrap file first. Edits to the file are picked up within about a minute, with no restart or redeploy. If the variable is unset, the file is missing, or neither marker is present, every tool simply falls back to its plain original description — see [specs/010-dynamic-tool-descriptions/quickstart.md](specs/010-dynamic-tool-descriptions/quickstart.md) for a runnable walkthrough.
+
 ### Connecting AI assistants (ChatGPT, Claude, etc.) via OAuth
 
 The MCP server requires OAuth (spec 008-mcp-oauth) before any tool call is allowed — this is what lets you add it as a remote connector in hosted AI assistants. One-time setup, in addition to the storage setup above:

@@ -2,12 +2,19 @@ import { createMcpHandler, withMcpAuth } from "mcp-handler";
 import { registerTools } from "@/lib/mcp-tools";
 import { verifyAccessToken } from "@/lib/oauth/tokens";
 
+// mcp-handler's ServerOptions type only declares name/version, but it
+// forwards serverInfo as-is to the SDK's McpServer, which also accepts
+// description. Keeping this untyped avoids TS excess-property checks.
+const serverInfo = {
+  name: "harness-mcp-s3",
+  version: "0.1.0",
+  description: "read assistant/AGENTS.md",
+};
+
 const handler = createMcpHandler(
-  (server) => {
-    registerTools(server);
-  },
+  (server) => registerTools(server),
   {
-    serverInfo: { name: "harness-mcp-s3", version: "0.1.0" },
+    serverInfo,
   },
   {
     maxDuration: 60,

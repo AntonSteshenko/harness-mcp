@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createDirectory, deleteDirectory, listDirectory } from "@/lib/storage/directories";
 import { createFile, deleteFile, readFile, updateFile } from "@/lib/storage/files";
 import { move } from "@/lib/storage/move";
+import { buildEntryDescription, buildWriteDescription, getBootstrapFraming } from "./bootstrap";
 import { errorResult, ok } from "./result";
 
 /**
@@ -11,14 +12,18 @@ import { errorResult, ok } from "./result";
  * story (US1: create_file/read_file/delete_file, US2: directory tools,
  * US3: update_file/move).
  */
-export function registerTools(server: McpServer): void {
+export async function registerTools(server: McpServer): Promise<void> {
+  const framing = await getBootstrapFraming();
+
   server.registerTool(
     "create_file",
     {
       title: "Create File",
-      description:
+      description: buildWriteDescription(
         "Creates a file at path with content, overwriting it if a file already exists there. " +
-        "Fails with already_exists if a directory exists at path.",
+          "Fails with already_exists if a directory exists at path.",
+        framing,
+      ),
       inputSchema: {
         path: z.string().describe('Filesystem-style path, e.g. "notes/todo.txt"'),
         content: z.string().describe("The full content to write"),
@@ -37,7 +42,10 @@ export function registerTools(server: McpServer): void {
     "read_file",
     {
       title: "Read File",
-      description: "Reads the full current content of the file at path.",
+      description: buildEntryDescription(
+        "Reads the full current content of the file at path.",
+        framing,
+      ),
       inputSchema: {
         path: z.string().describe('Filesystem-style path, e.g. "notes/todo.txt"'),
       },
@@ -55,7 +63,7 @@ export function registerTools(server: McpServer): void {
     "delete_file",
     {
       title: "Delete File",
-      description: "Deletes the file at path.",
+      description: buildWriteDescription("Deletes the file at path.", framing),
       inputSchema: {
         path: z.string().describe('Filesystem-style path, e.g. "notes/todo.txt"'),
       },
@@ -73,9 +81,11 @@ export function registerTools(server: McpServer): void {
     "create_directory",
     {
       title: "Create Directory",
-      description:
+      description: buildWriteDescription(
         "Creates a directory at path. Idempotent if it already exists. Fails with " +
-        "already_exists if a file exists at path.",
+          "already_exists if a file exists at path.",
+        framing,
+      ),
       inputSchema: {
         path: z.string().describe('Filesystem-style directory path, e.g. "notes/"'),
       },
@@ -93,9 +103,11 @@ export function registerTools(server: McpServer): void {
     "list_directory",
     {
       title: "List Directory",
-      description:
+      description: buildEntryDescription(
         "Lists the direct children (files and subdirectories) of the directory at path. " +
-        "Does not recurse into subdirectories. Use \"\" for the root.",
+          "Does not recurse into subdirectories. Use \"\" for the root.",
+        framing,
+      ),
       inputSchema: {
         path: z.string().describe('Filesystem-style directory path, e.g. "notes/", or "" for the root'),
       },
@@ -113,7 +125,10 @@ export function registerTools(server: McpServer): void {
     "delete_directory",
     {
       title: "Delete Directory",
-      description: "Deletes the directory at path and everything inside it, recursively.",
+      description: buildWriteDescription(
+        "Deletes the directory at path and everything inside it, recursively.",
+        framing,
+      ),
       inputSchema: {
         path: z.string().describe('Filesystem-style directory path, e.g. "notes/"'),
       },
@@ -131,9 +146,11 @@ export function registerTools(server: McpServer): void {
     "update_file",
     {
       title: "Update File",
-      description:
+      description: buildWriteDescription(
         "Replaces the full content of an existing file at path (whole-file overwrite only). " +
-        "Fails with not_found if the file does not already exist.",
+          "Fails with not_found if the file does not already exist.",
+        framing,
+      ),
       inputSchema: {
         path: z.string().describe('Filesystem-style path, e.g. "notes/todo.txt"'),
         content: z.string().describe("The full new content to write"),
@@ -152,9 +169,11 @@ export function registerTools(server: McpServer): void {
     "move",
     {
       title: "Move / Rename",
-      description:
+      description: buildWriteDescription(
         "Moves/renames a file or directory (and everything inside it, for a directory) from " +
-        "sourcePath to destinationPath. Fails with already_exists if destinationPath is occupied.",
+          "sourcePath to destinationPath. Fails with already_exists if destinationPath is occupied.",
+        framing,
+      ),
       inputSchema: {
         sourcePath: z.string().describe("The current path of the file or directory"),
         destinationPath: z.string().describe("The new path"),
