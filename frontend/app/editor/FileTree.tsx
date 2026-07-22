@@ -58,6 +58,14 @@ function baseName(path: string): string {
   return segments[segments.length - 1] || path;
 }
 
+/** Joins a directory path (possibly already trailing-slash-terminated, as
+ * returned by S3 CommonPrefixes) with a child name, without producing a
+ * double slash. */
+function joinPath(dirPath: string, name: string): string {
+  const trimmed = dirPath.replace(/\/+$/, "");
+  return trimmed === "" ? name : `${trimmed}/${name}`;
+}
+
 function isMarkdownFile(name: string): boolean {
   return name.toLowerCase().endsWith(".md");
 }
@@ -394,7 +402,7 @@ function DirectoryNode({
     const name = promptForEntryName("New file name:");
     if (!name) return;
 
-    const targetPath = path === "" ? name : `${path}/${name}`;
+    const targetPath = joinPath(path, name);
 
     const existingNames = new Set((entries?.files ?? []).map((f) => baseName(f.path)));
     if (existingNames.has(name) && !window.confirm(`This will overwrite the existing file "${name}". Continue?`)) {
@@ -453,7 +461,7 @@ function DirectoryNode({
     const name = promptForEntryName("New folder name:");
     if (!name) return;
 
-    const targetPath = path === "" ? name : `${path}/${name}`;
+    const targetPath = joinPath(path, name);
 
     setBusy(true);
     try {

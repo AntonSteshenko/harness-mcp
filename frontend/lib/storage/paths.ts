@@ -4,11 +4,11 @@ import { BUCKET, s3Client } from "./client";
 export type PathKind = "file" | "directory" | "none";
 
 export function normalizeFilePath(path: string): string {
-  return path.trim().replace(/^\/+/, "").replace(/\/+$/, "");
+  return path.trim().replace(/\/+/g, "/").replace(/^\/+/, "").replace(/\/+$/, "");
 }
 
 export function normalizeDirectoryPath(path: string): string {
-  const trimmed = path.trim().replace(/^\/+/, "");
+  const trimmed = path.trim().replace(/\/+/g, "/").replace(/^\/+/, "");
   if (trimmed === "") return "";
   return trimmed.endsWith("/") ? trimmed : `${trimmed}/`;
 }
