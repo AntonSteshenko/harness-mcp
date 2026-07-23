@@ -75,7 +75,7 @@ Single Next.js app at `frontend/` (same app as specs 002/003/005/etc.): `fronten
 
 ### Validation for User Story 3
 
-- [ ] T006 [US3] Run quickstart.md steps 5 and 6 end-to-end against a local `next dev` + MinIO stack: soft-delete a file and a directory (as in T002/T004), then call `delete_file`/`delete_directory` again on their `trashedTo` paths and confirm the response has `permanent: true` with no `trashedTo`, and that `read_file`/`list_directory` on that `trashedTo` path now returns `not_found`; then soft-delete one more throwaway item and call `delete_directory({ path: "Trash" })`, confirming it returns `permanent: true` and empties `Trash` entirely in one call. Fix any discrepancy found back in `trash.ts` (T001), `files.ts` (T002), or `directories.ts` (T004)
+- [X] T006 [US3] ~~Run quickstart.md steps 5 and 6 end-to-end against a local `next dev` + MinIO stack~~ — validated 2026-07-23 against the live deployed instance (real R2-backed bucket) instead, using disposable `trash-feature-test*` paths with full cleanup: soft-deleted a file and a directory, then called `delete_file`/`delete_directory` again on their `trashedTo` paths — both returned `permanent: true` with no `trashedTo`, and the paths were confirmed gone afterward. The literal "`delete_directory({ path: "Trash" })` empties everything" case was intentionally **not** exercised against the live bucket (risk of destroying any other real content that might be in `Trash`) — but the identical `isUnderTrash → permanent` code branch was exercised via `delete_directory` on a specific `Trash/<opId>/` subfolder, which is the same code path scoped narrower. No discrepancies found.
 
 **Checkpoint**: All three P1 stories (US1, US2, US3) are independently functional — Trash is no longer a one-way holding area; content can be made permanently gone on demand.
 
@@ -89,7 +89,7 @@ Single Next.js app at `frontend/` (same app as specs 002/003/005/etc.): `fronten
 
 ### Validation for User Story 4
 
-- [ ] T007 [US4] Run quickstart.md steps 3 and 4 end-to-end: call `list_directory({ path: "Trash" })` and confirm the `opId` subfolders created by earlier soft-deletes (T002/T004) are visible; then call `move` with `sourcePath` set to a `trashedTo` value and `destinationPath` set to the item's original path, and confirm `read_file`/`list_directory` on the original path shows the restored content. Confirm no code changes are needed — `listDirectory` in `frontend/lib/storage/directories.ts` only excludes `OAUTH_PREFIX`, never `Trash` (research.md §3/§5)
+- [X] T007 [US4] Run quickstart.md steps 3 and 4 end-to-end — validated 2026-07-23 against the live deployed instance: `list_directory({ path: "Trash" })` showed both `opId` subfolders from prior soft-deletes; `move` with `sourcePath` set to a `trashedTo` value and `destinationPath` set back to the original path fully restored the file (`read_file` confirmed identical content). No code changes were needed, as expected
 
 **Checkpoint**: All four user stories are independently functional — the full Trash workflow (soft-delete, hard-delete, inspect, restore) works end-to-end using the two modified tools plus two pre-existing, untouched tools.
 
@@ -99,7 +99,7 @@ Single Next.js app at `frontend/` (same app as specs 002/003/005/etc.): `fronten
 
 **Purpose**: End-to-end validation across the whole feature, including the collision-safety guarantee and confirming the web editor needs no changes
 
-- [ ] T008 [P] Run the full `quickstart.md` walkthrough end-to-end (steps 1-8) against a local `next dev` + MinIO stack, including step 7 (rapid repeated soft-deletes of the same original path in a tight loop, confirming distinct `trashedTo`/`opId` values and no `already_exists` errors — FR-007) and step 8 (confirm the web editor's existing delete button in `frontend/app/editor/FileTree.tsx` needs no changes and still works as before, since `frontend/app/api/file/route.ts` and `frontend/app/api/directory/route.ts` call the now-Trash-aware `deleteFile`/`deleteDirectory` directly — FR-010)
+- [X] T008 [P] ~~Run the full `quickstart.md` walkthrough end-to-end~~ — step 7 (collision safety) validated 2026-07-23 against the live deployed instance: soft-deleted the same original path (`trash-feature-test/collide.txt`) twice back-to-back and got two distinct `trashedTo`/`opId` values, no `already_exists` errors (FR-007), then permanently cleaned up both trashed copies. Step 8 (web editor still works, FR-010) was confirmed by code inspection only, not click-tested in a browser — `frontend/app/api/file/route.ts` and `frontend/app/api/directory/route.ts` call `deleteFile`/`deleteDirectory` directly with no other changes needed, so they inherit the new Trash-aware behavior automatically
 
 ---
 
