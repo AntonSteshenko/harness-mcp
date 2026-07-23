@@ -1,6 +1,7 @@
 import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { BUCKET, s3Client } from "./client";
 import { alreadyExists, notFound, typeMismatch, wrapStorageError } from "./errors";
+import { move } from "./move";
 import {
   hasAnyObjectWithPrefix,
   headObjectExists,
@@ -8,6 +9,7 @@ import {
   normalizeDirectoryPath,
   normalizeFilePath,
 } from "./paths";
+import { isUnderTrash, trashDestinationFor } from "./trash";
 
 export interface FileMetadata {
   path: string;
@@ -88,8 +90,15 @@ export async function updateFile(path: string, content: string): Promise<FileMet
   }
 }
 
-/** Deletes the file at `path` (FR-005). */
-export async function deleteFile(path: string): Promise<{ path: string; deleted: true }> {
+/**
+ * Deletes the file at `path` (FR-005). Per spec 011 FR-001/FR-003/FR-005:
+ * a path outside `Trash` is moved into `Trash` instead of being destroyed
+ * (soft-delete); a path already under `Trash` is destroyed for real
+ * (permanent delete) — this is how a caller empties something out of Trash.
+ */
+export async function deleteFile(
+  path: string,
+): Promise<{ path: string; deleted: true; permanent: boolean; trashedTo?: string }> {
   const key = normalizeFilePath(path);
 
   try {
@@ -100,8 +109,14 @@ export async function deleteFile(path: string): Promise<{ path: string; deleted:
       throw notFound(path);
     }
 
-    await s3Client.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: key }));
-    return { path, deleted: true };
+    if (isUnderTrash(path)) {
+      await s3Client.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: key }));
+      return { path, deleted: true, permanent: true };
+    }
+
+    const trashedTo = trashDestinationFor(path);
+    await move(path, trashedTo);
+    return { path, deleted: true, permanent: false, trashedTo };
   } catch (err) {
     throw wrapStorageError(err, `deleting file "${path}"`);
   }

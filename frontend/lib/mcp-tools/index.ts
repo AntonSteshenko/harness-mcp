@@ -63,7 +63,12 @@ export async function registerTools(server: McpServer): Promise<void> {
     "delete_file",
     {
       title: "Delete File",
-      description: buildWriteDescription("Deletes the file at path.", framing),
+      description: buildWriteDescription(
+        "Deletes the file at path. If path is outside Trash, it is moved into Trash instead " +
+          "of being destroyed (recoverable via the move tool). If path is already under Trash, " +
+          "it is destroyed for real.",
+        framing,
+      ),
       inputSchema: {
         path: z.string().describe('Filesystem-style path, e.g. "notes/todo.txt"'),
       },
@@ -126,7 +131,10 @@ export async function registerTools(server: McpServer): Promise<void> {
     {
       title: "Delete Directory",
       description: buildWriteDescription(
-        "Deletes the directory at path and everything inside it, recursively.",
+        "Deletes the directory at path and everything inside it, recursively. If path is " +
+          "outside Trash, the whole subtree is moved into Trash instead of being destroyed " +
+          "(recoverable via the move tool). If path is already under Trash, it is destroyed for " +
+          "real — calling this on \"Trash\" itself empties Trash permanently in one call.",
         framing,
       ),
       inputSchema: {

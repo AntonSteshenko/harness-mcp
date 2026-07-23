@@ -2,7 +2,9 @@ import { DeleteObjectsCommand, ListObjectsV2Command, PutObjectCommand } from "@a
 import { OAUTH_PREFIX } from "@/lib/oauth/store";
 import { BUCKET, s3Client } from "./client";
 import { alreadyExists, notFound, typeMismatch, wrapStorageError } from "./errors";
+import { move } from "./move";
 import { headObjectExists, normalizeDirectoryPath, normalizeFilePath } from "./paths";
+import { isUnderTrash, trashDestinationFor } from "./trash";
 
 export interface DirectoryEntry {
   files: Array<{ path: string; size: number; lastModified: string }>;
@@ -70,11 +72,15 @@ export async function listDirectory(path: string): Promise<{ path: string } & Di
 
 /**
  * Deletes the directory at `path` and everything inside it, recursively
- * (FR-008). Not_found if missing; type_mismatch if `path` is a file.
+ * (FR-008). Not_found if missing; type_mismatch if `path` is a file. Per
+ * spec 011 FR-002/FR-003/FR-006: a path outside `Trash` is moved into
+ * `Trash` instead of being destroyed (soft-delete); a path already under
+ * `Trash` (including `Trash` itself) is destroyed for real (permanent
+ * delete) — calling this on `Trash` itself empties it entirely.
  */
 export async function deleteDirectory(
   path: string,
-): Promise<{ path: string; deleted: true; filesRemoved: number }> {
+): Promise<{ path: string; deleted: true; permanent: boolean; filesRemoved: number; trashedTo?: string }> {
   const dirKey = normalizeDirectoryPath(path);
   const fileKey = normalizeFilePath(path);
 
@@ -103,18 +109,24 @@ export async function deleteDirectory(
       throw notFound(path);
     }
 
-    for (let i = 0; i < allKeys.length; i += 1000) {
-      const batch = allKeys.slice(i, i + 1000);
-      await s3Client.send(
-        new DeleteObjectsCommand({
-          Bucket: BUCKET,
-          Delete: { Objects: batch.map((Key) => ({ Key })) },
-        }),
-      );
+    const filesRemoved = allKeys.filter((k) => !k.endsWith("/")).length;
+
+    if (isUnderTrash(path)) {
+      for (let i = 0; i < allKeys.length; i += 1000) {
+        const batch = allKeys.slice(i, i + 1000);
+        await s3Client.send(
+          new DeleteObjectsCommand({
+            Bucket: BUCKET,
+            Delete: { Objects: batch.map((Key) => ({ Key })) },
+          }),
+        );
+      }
+      return { path, deleted: true, permanent: true, filesRemoved };
     }
 
-    const filesRemoved = allKeys.filter((k) => !k.endsWith("/")).length;
-    return { path, deleted: true, filesRemoved };
+    const trashedTo = trashDestinationFor(path);
+    await move(path, trashedTo);
+    return { path, deleted: true, permanent: false, filesRemoved, trashedTo };
   } catch (err) {
     throw wrapStorageError(err, `deleting directory "${path}"`);
   }
