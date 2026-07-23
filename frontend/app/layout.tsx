@@ -1,5 +1,7 @@
+import { getOsName } from "@/lib/config/app";
+
 export const metadata = {
-  title: "harness-mcp",
+  title: getOsName(),
   description: "S3 storage MCP server",
 };
 

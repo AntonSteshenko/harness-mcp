@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getOsName } from "@/lib/config/app";
 import { hasActiveOwnerSession } from "@/lib/oauth/session";
 import EditorApp from "./EditorApp";
 
@@ -8,5 +9,5 @@ export default async function EditorPage() {
     redirect(`/oauth/login?continue=${encodeURIComponent("/editor")}`);
   }
 
-  return <EditorApp />;
+  return <EditorApp osName={getOsName()} />;
 }

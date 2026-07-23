@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { FileEditor } from "./FileEditor";
 import { FileTree } from "./FileTree";
-import { MenuIcon } from "./Icons";
+import { Header } from "./Header";
 
-export default function EditorApp() {
+export default function EditorApp({ osName }: { osName: string }) {
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -29,37 +29,35 @@ export default function EditorApp() {
   }
 
   return (
-    <div className="editor-shell">
-      <button
-        type="button"
-        className="sidebar-toggle"
-        aria-label="Toggle file browser"
-        onClick={() => setSidebarOpen((open) => !open)}
-      >
-        <MenuIcon />
-      </button>
-      <div className={`sidebar${sidebarOpen ? " sidebar-open" : ""}`}>
-        <FileTree
-          onSelectFile={handleSelectFile}
-          onFileDeleted={handleFileDeleted}
-          onFolderDeleted={handleFolderDeleted}
-        />
-      </div>
-      {sidebarOpen && (
-        <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} aria-hidden="true" />
-      )}
-      <div className="editor-pane">
-        <FileEditor path={selectedPath} onDirtyChange={setIsDirty} />
+    <div className="app-shell">
+      <Header osName={osName} onToggleSidebar={() => setSidebarOpen((open) => !open)} />
+      <div className="body-row">
+        <div className={`sidebar${sidebarOpen ? " sidebar-open" : ""}`}>
+          <FileTree
+            onSelectFile={handleSelectFile}
+            onFileDeleted={handleFileDeleted}
+            onFolderDeleted={handleFolderDeleted}
+          />
+        </div>
+        {sidebarOpen && (
+          <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} aria-hidden="true" />
+        )}
+        <div className="editor-pane">
+          <FileEditor path={selectedPath} onDirtyChange={setIsDirty} />
+        </div>
       </div>
       <style jsx>{`
-        .editor-shell {
+        .app-shell {
           display: flex;
+          flex-direction: column;
           height: 100vh;
           font-family: system-ui, sans-serif;
-          position: relative;
         }
-        .sidebar-toggle {
-          display: none;
+        .body-row {
+          display: flex;
+          flex: 1;
+          min-height: 0;
+          position: relative;
         }
         .sidebar {
           width: 280px;
@@ -79,24 +77,11 @@ export default function EditorApp() {
         }
 
         @media (max-width: 768px) {
-          .sidebar-toggle {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            position: fixed;
-            top: 8px;
-            left: 8px;
-            width: 40px;
-            height: 40px;
-            z-index: 30;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background: #fff;
-            color: #333;
-          }
           .sidebar {
             position: fixed;
-            inset: 0 auto 0 0;
+            top: 52px;
+            bottom: 0;
+            left: 0;
             width: min(85vw, 320px);
             background: #fff;
             z-index: 25;
@@ -110,12 +95,12 @@ export default function EditorApp() {
           .sidebar-backdrop {
             display: block;
             position: fixed;
-            inset: 0;
+            top: 52px;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background: rgba(0, 0, 0, 0.35);
             z-index: 20;
-          }
-          .editor-pane {
-            padding-top: 56px;
           }
         }
       `}</style>
