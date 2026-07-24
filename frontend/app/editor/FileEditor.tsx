@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { authedFetch } from "@/lib/editorFetch";
+import { CsvTableEditor } from "./CsvTableEditor";
 import { MarkdownEditor } from "./MarkdownEditor";
 import { PlainTextEditor } from "./PlainTextEditor";
 
@@ -14,13 +15,16 @@ export interface EditorSession {
   path: string;
   loadedContent: string;
   currentContent: string;
-  kind: "markdown" | "text";
+  kind: "markdown" | "text" | "csv";
   saveState: "idle" | "saving" | "error";
   saveError: string | null;
 }
 
 export function deriveKind(path: string): EditorSession["kind"] {
-  return path.toLowerCase().endsWith(".md") ? "markdown" : "text";
+  const lower = path.toLowerCase();
+  if (lower.endsWith(".md")) return "markdown";
+  if (lower.endsWith(".csv")) return "csv";
+  return "text";
 }
 
 export interface FileEditorProps {
@@ -37,8 +41,8 @@ type LoadState =
 
 export function FileEditor({ path, onDirtyChange }: FileEditorProps) {
   const [state, setState] = useState<LoadState>({ status: "idle" });
-  // Markdown files open showing the rendered view by default; "Edit" is an
-  // explicit switch, never shown side-by-side with the preview.
+  // Markdown/CSV files open showing the rendered view by default; "Edit"/"Raw"
+  // is an explicit switch, never shown side-by-side with the preview/table.
   const [mode, setMode] = useState<"preview" | "edit">("preview");
 
   // Load the file whenever a different path is opened (US1, FR-002).
@@ -177,7 +181,7 @@ export function FileEditor({ path, onDirtyChange }: FileEditorProps) {
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8, flexWrap: "wrap" }}>
         <h3 style={{ margin: 0, overflowWrap: "anywhere" }}>{session.path}</h3>
-        {session.kind === "markdown" && (
+        {(session.kind === "markdown" || session.kind === "csv") && (
           <div style={{ display: "inline-flex", border: "1px solid #ddd", borderRadius: 6, overflow: "hidden" }}>
             <button
               type="button"
@@ -190,7 +194,7 @@ export function FileEditor({ path, onDirtyChange }: FileEditorProps) {
                 cursor: "pointer",
               }}
             >
-              Preview
+              {session.kind === "csv" ? "Table" : "Preview"}
             </button>
             <button
               type="button"
@@ -204,7 +208,7 @@ export function FileEditor({ path, onDirtyChange }: FileEditorProps) {
                 cursor: "pointer",
               }}
             >
-              Edit
+              {session.kind === "csv" ? "Raw" : "Edit"}
             </button>
           </div>
         )}
@@ -221,6 +225,12 @@ export function FileEditor({ path, onDirtyChange }: FileEditorProps) {
       )}
       {session.kind === "markdown" ? (
         <MarkdownEditor value={session.currentContent} onChange={handleContentChange} mode={mode} />
+      ) : session.kind === "csv" ? (
+        <CsvTableEditor
+          value={session.currentContent}
+          onChange={handleContentChange}
+          mode={mode === "preview" ? "table" : "raw"}
+        />
       ) : (
         <PlainTextEditor value={session.currentContent} onChange={handleContentChange} />
       )}
