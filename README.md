@@ -1,8 +1,19 @@
 # harness-mcp
 
-Local self-hosted S3-compatible object storage for development, powered by [MinIO](https://min.io/) and Docker Compose. See [specs/001-s3-self-hosted-storage/quickstart.md](specs/001-s3-self-hosted-storage/quickstart.md) for a full end-to-end validation walkthrough.
+An autonomous, serverless system for running an AI-based Company OS. It can be deployed to serverless platforms like Vercel (or similar) or run locally on Node.js, and requires an external S3-compatible object storage backend — either your own, or a local self-hosted MinIO instance for development.
+
+This repo pairs that local MinIO setup with the Next.js app that uses it. See [specs/001-s3-self-hosted-storage/quickstart.md](specs/001-s3-self-hosted-storage/quickstart.md) for a full end-to-end validation walkthrough.
 
 The Next.js app (web editor + MCP server) lives entirely in [`frontend/`](frontend/) — that's the folder to point a future Vercel project's Root Directory setting at (see [specs/006-frontend-folder-structure](specs/006-frontend-folder-structure/spec.md)). Everything else at the repo root (`docker-compose.yml`, `data/`, `scripts/`) is local-dev infrastructure that isn't deployed.
+
+## Technical Overview
+
+- **App**: [`frontend/`](frontend/) is a single Next.js 16 (App Router) application in TypeScript, serving both the web editor UI and the MCP server from one deployable unit — no separate backend service.
+- **MCP server**: built on `@modelcontextprotocol/sdk` + `mcp-handler`, exposed as a Streamable HTTP endpoint at `/mcp` (see [S3 Storage MCP Server](#s3-storage-mcp-server) below).
+- **Storage**: all persisted state — files/directories exposed via MCP and the editor, plus OAuth clients/sessions and personal access tokens — lives in a single S3-compatible bucket, accessed via `@aws-sdk/client-s3`. No database is used; the bucket *is* the datastore.
+- **Auth**: two independent ways to authenticate to the MCP server — full OAuth 2.0 (for hosted AI assistants like ChatGPT/Claude adding it as a connector, spec [008-mcp-oauth](specs/008-mcp-oauth/)) and owner-generated, non-expiring personal access tokens (for scripts/CLI tools/`.mcp.json`, spec [013-mcp-token-auth](specs/013-mcp-token-auth/)). The web editor at `/editor` is gated by the same owner credential (spec [009-editor-login-gate](specs/009-editor-login-gate/)).
+- **Statelessness**: because all state lives in the S3 bucket rather than on local disk or in-memory, the app is safe to run as ephemeral serverless functions (e.g. on Vercel) — any instance can serve any request.
+- **No code changes to switch storage backend**: any S3-compatible provider works (self-hosted MinIO, AWS S3, or another compatible service) — swap it via environment variables only; see below.
 
 ## Getting Started
 
@@ -53,6 +64,24 @@ cp frontend/.env.example frontend/.env.local
 The defaults match the local MinIO instance started above. To point the app at a different S3-compatible provider, edit `frontend/.env.local` (endpoint, region, access key, secret key, bucket, and path-style vs. virtual-hosted-style addressing) and restart the app — no code changes required.
 
 The configured bucket (`S3_BUCKET`) **must already exist** — the app validates the connection at startup and fails fast with a clear error if required settings are missing, the endpoint is unreachable, credentials are rejected, or the bucket doesn't exist, rather than starting broken or failing later. For the local MinIO instance, create the bucket once via the web console (`http://localhost:9001`) or any S3-compatible CLI before starting the app — see [specs/007-s3-storage-config/quickstart.md](specs/007-s3-storage-config/quickstart.md) for the full walkthrough.
+
+## Running with external storage (no local MinIO)
+
+The repo-root `docker-compose.yml`/MinIO setup above is only for local development convenience — it is not a dependency of the app itself. `frontend/` runs against **any** S3-compatible bucket, so you can skip `docker compose` entirely and point it at storage you already have (AWS S3, or any other S3-compatible provider/self-hosted instance reachable from where the app runs).
+
+**Locally, against external storage:**
+
+1. `cp frontend/.env.example frontend/.env.local`
+2. Fill in `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_BUCKET` for your external provider (set `S3_FORCE_PATH_STYLE=false` if it needs virtual-hosted-style addressing — most providers other than self-hosted MinIO do), and set `OAUTH_OWNER_USERNAME`/`OAUTH_OWNER_PASSWORD`.
+3. Make sure the bucket already exists (it's never created automatically).
+4. `cd frontend && npm install && npm run dev` — no `docker compose up` needed.
+
+**Deployed serverless (e.g. Vercel):**
+
+1. Import the repo and set the project's **Root Directory** to `frontend/` (see [specs/006-frontend-folder-structure](specs/006-frontend-folder-structure/spec.md)) — this repo has no root-level `package.json`, only `frontend/` is a deployable Next.js app.
+2. In the platform's environment variables UI (not a `.env` file — those aren't deployed), set the same variables listed in [`frontend/.env.example`](frontend/.env.example): `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_BUCKET`, `S3_FORCE_PATH_STYLE`, `OAUTH_OWNER_USERNAME`, `OAUTH_OWNER_PASSWORD`, and optionally `MCP_BOOTSTRAP_PATH`/`OS_NAME`.
+3. Deploy. Because all app state (files, OAuth clients, personal access tokens) lives in the external bucket rather than on local disk, the deployment is stateless and safe to run as ephemeral serverless functions — no persistent volume or database needed.
+4. Once live, `/mcp` and `/editor` work exactly as in local dev, just at your deployment URL instead of `http://localhost:3000`.
 
 ## S3 Storage MCP Server
 
