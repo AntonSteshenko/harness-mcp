@@ -1,5 +1,7 @@
 # harness-mcp
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/AntonSteshenko/harness-mcp&root-directory=frontend)
+
 An autonomous, serverless system for running an AI-based Company OS. It can be deployed to serverless platforms like Vercel (or similar) or run locally on Node.js, and requires an external S3-compatible object storage backend — either your own, or a local self-hosted MinIO instance for development.
 
 This repo pairs that local MinIO setup with the Next.js app that uses it. See [specs/001-s3-self-hosted-storage/quickstart.md](specs/001-s3-self-hosted-storage/quickstart.md) for a full end-to-end validation walkthrough.
@@ -63,7 +65,13 @@ cp frontend/.env.example frontend/.env.local
 
 The defaults match the local MinIO instance started above. To point the app at a different S3-compatible provider, edit `frontend/.env.local` (endpoint, region, access key, secret key, bucket, and path-style vs. virtual-hosted-style addressing) and restart the app — no code changes required.
 
-The configured bucket (`S3_BUCKET`) **must already exist** — the app validates the connection at startup and fails fast with a clear error if required settings are missing, the endpoint is unreachable, credentials are rejected, or the bucket doesn't exist, rather than starting broken or failing later. For the local MinIO instance, create the bucket once via the web console (`http://localhost:9001`) or any S3-compatible CLI before starting the app — see [specs/007-s3-storage-config/quickstart.md](specs/007-s3-storage-config/quickstart.md) for the full walkthrough.
+The configured bucket (`S3_BUCKET`) **must already exist**. The app validates the connection at startup and logs a clear warning if required settings are missing, the endpoint is unreachable, credentials are rejected, or the bucket doesn't exist — but it no longer refuses to start over this (spec 014-os-init-page superseding spec 007's original fail-fast behavior): every request is instead sent to [`/init`](#connecting-storage-from-the-app-init) until storage is reachable, so the app is always up to guide you through fixing it. For the local MinIO instance, create the bucket once via the web console (`http://localhost:9001`) or any S3-compatible CLI before starting the app — see [specs/007-s3-storage-config/quickstart.md](specs/007-s3-storage-config/quickstart.md) for the full walkthrough.
+
+## Connecting storage from the app (`/init`)
+
+If storage isn't connected yet (missing configuration, unreachable endpoint, rejected credentials, or a missing bucket) — including a completely fresh clone or deploy with no configuration at all — every page redirects to `/init`, which shows a setup helper covering everything the app needs to run in one place: the storage connection, the owner sign-in credential, and an optional system name. Fill it in and it generates one ready-to-paste configuration snippet, plus plain instructions for applying it either locally (`frontend/.env.local`) or on a hosting provider (e.g. Vercel: Project → Settings → Environment Variables → paste). Nothing typed into this helper is ever sent to the server; apply the snippet yourself and restart/redeploy.
+
+Once storage is connected and signed in as the owner (see below), `/init` also bootstraps a fresh setup on an empty bucket — two questions about the business — creating `os/`, `data/`, `os/identity.md`, a root `AGENTS.md`, and `os/skills/init.md`; or, if that structure already exists, it links straight to `/editor`. See [specs/014-os-init-page](specs/014-os-init-page/spec.md) for the full spec.
 
 ## Running with external storage (no local MinIO)
 
@@ -118,7 +126,7 @@ The MCP server requires OAuth (spec 008-mcp-oauth) before any tool call is allow
    OAUTH_OWNER_USERNAME=owner
    OAUTH_OWNER_PASSWORD=<choose a password>
    ```
-2. Start the server (`npm run dev`) — it fails fast at startup if these are missing, same as the storage settings above.
+2. Start the server (`npm run dev`) — it logs a clear warning at startup if these are missing (same as the storage settings above), but still starts; sign-in simply fails until they're set.
 
 To add the server as a connector: in ChatGPT or Claude's "add connector"/"add MCP server" flow, point it at `http://localhost:3000/mcp` (or your deployed URL). The assistant discovers the OAuth flow automatically; you'll be prompted to sign in with the credential from step 1 and approve the connection. See [specs/008-mcp-oauth/quickstart.md](specs/008-mcp-oauth/quickstart.md) for the full walkthrough, including reviewing and revoking connected assistants at `/settings/connected-apps`.
 

@@ -1,7 +1,12 @@
 /**
  * Next.js startup hook (`register()` runs once per server instance, before
- * the app serves requests) — used to fail fast on storage misconfiguration
- * rather than on the first request (spec 007-s3-storage-config, FR-004/FR-005).
+ * the app serves requests) — logs storage/owner-credential misconfiguration
+ * loudly at startup, but (spec 014-os-init-page) no longer exits the
+ * process over it: doing so made `/init`'s connection-setup helper
+ * unreachable, since the process never lived long enough to serve any
+ * request. The app now always boots; `middleware.ts` sends every request to
+ * `/init` while storage is unconfigured, and `/init`'s own page performs
+ * the authoritative live check (contracts/init-page.md).
  */
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
@@ -9,22 +14,17 @@ export async function register() {
     try {
       await verifyStorageConnection();
     } catch (err) {
-      // Next.js logs a failed instrumentation hook but otherwise leaves the
-      // process running (every request then 500s) — exit explicitly so
-      // misconfiguration actually stops the server (FR-004, FR-005) instead
-      // of leaving it up in a broken state.
-      console.error(`\nFatal: storage connection is misconfigured — refusing to start.\n${(err as Error).message}\n`);
-      process.exit(1);
+      console.error(`\nWarning: storage connection is misconfigured — visit /init to connect it.\n${(err as Error).message}\n`);
     }
 
-    // spec 008-mcp-oauth, FR-009: same fail-fast pattern for the dedicated
-    // OAuth owner credential (separate from the storage credentials above).
+    // spec 008-mcp-oauth: same relaxed pattern for the dedicated OAuth owner
+    // credential (separate from the storage credentials above) — logged,
+    // not fatal; sign-in simply fails until it's configured.
     const { verifyOwnerCredentialConfig } = await import("./lib/oauth/config");
     try {
       verifyOwnerCredentialConfig();
     } catch (err) {
-      console.error(`\nFatal: OAuth owner credential is misconfigured — refusing to start.\n${(err as Error).message}\n`);
-      process.exit(1);
+      console.error(`\nWarning: OAuth owner credential is misconfigured — sign-in will fail until it's set.\n${(err as Error).message}\n`);
     }
   }
 }
