@@ -3,6 +3,10 @@
     "harness-mcp": {
       "type": "http",
       "url": "http://localhost:3000/mcp"
+    },
+    "vercel": {
+      "type": "http",
+      "url": "https://mcp.vercel.com"
     }
   }
 }

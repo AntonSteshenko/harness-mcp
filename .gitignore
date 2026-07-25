@@ -22,3 +22,7 @@ tsconfig.tsbuildinfo
 
 # Local MinIO storage data (bind-mounted, see docker-compose.yml)
 /data/
+.vercel
+.env*
+
+.mcp.json
