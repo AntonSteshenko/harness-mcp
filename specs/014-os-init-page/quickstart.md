@@ -28,23 +28,21 @@ Manual validation guide (this project has no automated test suite — research.m
 7. Reload `/init`.
 8. **Expect**: the page no longer shows the setup helper (moves on to Scenario 2 or 3 below, per current bucket contents).
 
-## Scenario 2 — First-time setup on an empty bucket (US1, FR-004 through FR-010)
+## Scenario 2 — First-time setup on an empty bucket (US1, FR-004, FR-006, FR-008 through FR-010)
 
 1. With storage connected and reachable, ensure the configured bucket has neither `os/` nor `data/` (a freshly created bucket, or after `./scripts/reset-storage.sh` + recreating the bucket).
 2. Visit `/init`. If not signed in, sign in via the redirect to `/oauth/login`.
-3. **Expect**: a form with two questions — "What is your business called?" and "What does your business do?".
-4. Submit with both fields blank.
-5. **Expect**: submission is rejected with a clear message; nothing is created (verify via `/editor` that the bucket is still empty).
-6. Submit again with a business name and description filled in.
-7. **Expect**: redirected back to `/init`, now showing a confirmation with a link to `/editor`.
-8. Open `/editor` and verify: `os/identity.md` exists and contains the name/description entered; `data/` exists (empty); `AGENTS.md` exists at the bucket root and references `os/skills/init.md`; `os/skills/init.md` exists.
+3. **Expect**: a short explanation and a single "Initialize Company OS" button — no text fields, no questions.
+4. Click it.
+5. **Expect**: redirected back to `/init`, now showing MCP-connection instructions (the server URL, OAuth notes for Claude/ChatGPT, `/settings/connected-apps`) with a confirmation sentence that the skeleton was just created, plus a link to `/editor`.
+6. Open `/editor` and verify: `data/` exists (empty); `AGENTS.md` exists at the bucket root and references `os/skills/init.md`; `os/skills/init.md` exists; **no** `os/identity.md` or any other business-specific file was created.
 
-## Scenario 3 — Already initialized (US3, FR-003, FR-011, SC-002)
+## Scenario 3 — Already initialized: MCP-connection guidance (US3, FR-003, FR-011, SC-002)
 
-1. Using the bucket from Scenario 2 (already containing `os/` and `data/`), visit `/init` again.
-2. **Expect**: the page states a Company OS already exists and shows a link to `/editor` — no setup form, no way to re-run initialization.
-3. Attempt `POST /init/submit` directly (e.g. via `curl` with a valid owner session cookie) with different form values.
-4. **Expect**: no change to `os/identity.md`'s existing content — the submission is a no-op (research.md §4).
+1. Using the bucket from Scenario 2 (already containing `os/` and `data/`), visit `/init` again (without `?created=1`).
+2. **Expect**: the page shows the MCP server URL, notes that OAuth sign-in happens automatically once added as a connector in Claude/ChatGPT, a link to `/settings/connected-apps`, and a link to `/editor` — no setup action, no way to re-run initialization, and (since this wasn't reached via the confirmation redirect) no "just created" sentence.
+3. Attempt `POST /init/submit` directly (e.g. via `curl` with a valid owner session cookie).
+4. **Expect**: no change to anything under `os/` or `data/` — the request is a no-op (research.md §4).
 
 ## Scenario 4 — Partial/interrupted state (Edge Case, FR-013)
 

@@ -8,7 +8,7 @@
 
 ## Summary
 
-A new `/init` page bootstraps a fresh "Company OS" in the app's already-configured S3-compatible bucket. On load it resolves one of three states — storage not connected (show an interactive, client-side-only setup helper covering storage connection, the owner sign-in credential, and an optional system name, generating one copyable config snippet, FR-014/FR-015), storage connected and already initialized (`os/` + `data/` both present — show a link to `/editor`), or storage connected and empty (show a two-question setup form). Submitting the form creates `os/`, `data/`, `os/identity.md` (populated from the two answers), a root `AGENTS.md`, and a fixed `os/skills/init.md` skill file, entirely by composing existing `lib/storage/*` primitives (spec 001/002/007) and the existing owner-session gate (spec 009) — no new storage mechanism or auth mechanism. Planning surfaced one necessary spec correction (FR-012): the owner-session gate itself depends on reachable storage, so it cannot apply to the "not connected" state (research.md §1). The setup helper is deliberately inert — pure client-side string templating, no network call, no server-side handling of the entered secrets (research.md §7).
+A new `/init` page bootstraps a fresh "Company OS" in the app's already-configured S3-compatible bucket. On load it resolves one of three states — storage not connected (show an interactive, client-side-only setup helper covering storage connection, the owner sign-in credential, and an optional system name, generating one copyable config snippet, FR-014/FR-015), storage connected and already initialized (`os/` + `data/` both present — show MCP-connection guidance for Claude/ChatGPT plus a link to `/editor`), or storage connected and empty (show a single no-field confirmation action). Confirming creates only the skeleton — `os/`, `data/`, a root `AGENTS.md`, and a fixed `os/skills/init.md` skill file — entirely by composing existing `lib/storage/*` primitives (spec 001/002/007) and the existing owner-session gate (spec 009) — no new storage mechanism or auth mechanism. No business-specific content (e.g. `os/identity.md`) is created by this app at all (2026-07-25 revision, research.md §10) — that's left to the connected AI assistant's own interview via the init skill. Planning surfaced one necessary spec correction (FR-012): the owner-session gate itself depends on reachable storage, so it cannot apply to the "not connected" state (research.md §1). The setup helper is deliberately inert — pure client-side string templating, no network call, no server-side handling of the entered secrets (research.md §7).
 
 Implementation surfaced a second, more structural correction (FR-016/FR-017, research.md §8): `frontend/instrumentation.ts`'s pre-existing fail-fast startup checks (spec 007/008) made `/init` completely unreachable when storage was never configured, since the process exited before serving any request. Both checks are now log-only, and a new `frontend/middleware.ts` redirects every request to `/init` while storage is obviously unconfigured.
 
@@ -18,7 +18,7 @@ Implementation surfaced a second, more structural correction (FR-016/FR-017, res
 
 **Primary Dependencies**: Existing `lib/storage/*` (`verifyStorageConnection`, `hasAnyObjectWithPrefix`, `createDirectory`, `createFile`, spec 001/002/007) and `lib/oauth/session.ts` (`hasActiveOwnerSession`, spec 008/009). No new npm dependency.
 
-**Storage**: S3-compatible object storage (MinIO, spec 001), via the existing `lib/storage/*` helpers — this feature only adds new content at new paths (`os/`, `data/`, `os/identity.md`, `AGENTS.md`, `os/skills/init.md`); no new storage mechanism.
+**Storage**: S3-compatible object storage (MinIO, spec 001), via the existing `lib/storage/*` helpers — this feature only adds new content at new paths (`os/`, `data/`, `AGENTS.md`, `os/skills/init.md`); no new storage mechanism, and no business-specific content (research.md §10).
 
 **Testing**: No automated test suite in this project; validated via `quickstart.md`'s manual scenario walkthrough, consistent with specs 001-013.
 
@@ -61,17 +61,22 @@ frontend/
 ├── middleware.ts           # NEW: redirects every request to /init while storage is obviously unconfigured (research.md §8)
 ├── lib/
 │   └── os/
-│       └── init.ts        # NEW: checkOsStatus() (research.md §3), initializeCompanyOs(name, description)
-│                           #      (research.md §4-§5) — owns the fixed AGENTS.md / os/skills/init.md templates
+│       ├── init.ts             # NEW: checkOsStatus() (research.md §3), initializeCompanyOs() — no args, no
+│       │                       #      identity.md (research.md §4-§5, §10) — reads the two template files below
+│       └── templates/
+│           ├── AGENTS.md       # NEW: fixed template content for the bucket-root AGENTS.md (research.md §5)
+│           └── init.md         # NEW: fixed template content for os/skills/init.md (research.md §5)
 └── app/
     └── init/
         ├── page.tsx              # NEW: server component — resolves the 3 states (contracts/init-page.md),
         │                         #      redirects to sign-in when required, renders the matching view
-        ├── InitForm.tsx          # NEW: the two-question setup form (posts to submit/route.ts)
+        ├── McpConnectManual.tsx  # NEW: MCP server URL + OAuth connection guidance for Claude/ChatGPT — shown once
+        │                         #      os/+data/ exist, freshly created or not (FR-003/FR-010, research.md §6/§10)
         ├── EnvSetupHelper.tsx    # NEW: client component — setup helper (FR-014/FR-015): storage + owner credential +
         │                         #      system name fields, one client-side snippet, no fetch calls (research.md §7)
         └── submit/
-            └── route.ts          # NEW: POST — validates input, calls initializeCompanyOs, redirects to /init?created=1
+            └── route.ts          # NEW: POST — no request body, requires owner session, calls initializeCompanyOs(),
+                                   #      redirects to /init?created=1
 ```
 
 **Structure Decision**: This feature lives entirely inside the existing single Next.js app (`frontend/`) established by specs 001-013 — no new project, service, or top-level directory. It adds one new lib module (`lib/os/init.ts`) that composes existing `lib/storage/*` primitives, and one new page area under `app/init/` mirroring the existing `app/editor/` (page + owner-session redirect) and `app/settings/personal-access-tokens/create/route.ts` (form-POST route) patterns, plus one new root-level `middleware.ts`. The only existing file touched is `instrumentation.ts` (research.md §8) — a small, additive change to its two existing catch blocks.

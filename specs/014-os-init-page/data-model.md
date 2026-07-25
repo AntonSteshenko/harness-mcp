@@ -15,26 +15,24 @@ The pair of top-level directory markers whose joint presence/absence drives `/in
 
 **Validation rule**: Both must exist, or neither — see research.md §3's partial-state table (FR-013).
 
-## Identity file (`os/identity.md`)
-
-| Field | Type | Notes |
-|---|---|---|
-| Business name | string | The first form answer ("What is your business called?"), required non-blank (FR-005). |
-| Business description | string | The second form answer ("What does your business do?"), required non-blank (FR-005). |
-
-**Content shape**: a Markdown document with the business name as a top-level heading and the description as body text — plain enough for both a human (via `/editor`) and an AI assistant (via the MCP server) to read directly; no additional structured fields are introduced by this feature.
-
-**Validation rules**: both inputs trimmed; rejected (no file written) if either is empty after trimming (FR-005).
-
-**Lifecycle**: written once, at initialization (FR-007). This feature does not add any update/edit path for it — once created, editing it (like any other file) goes through the existing `/editor` (spec 003).
+**2026-07-25 revision**: this feature no longer creates `os/identity.md` or any other business-specific file (spec.md FR-007, removed). That's now entirely the connected AI assistant's responsibility, driven by its own interview — see `os/skills/init.md` below.
 
 ## Agents entry point (`AGENTS.md`, bucket root)
 
-Fixed content (research.md §5) — not derived from form input. States that any connecting AI assistant should read `os/skills/init.md` for guidance on operating the system (FR-008).
+Fixed content (research.md §5) — no input of any kind, since there is no form anymore. States that any connecting AI assistant should read `os/skills/init.md` for guidance on operating the system (FR-008).
 
 ## Init skill (`os/skills/init.md`)
 
-Fixed content (research.md §5), identical for every newly initialized Company OS — orients a connecting AI assistant on how to start operating a freshly created Company OS, including pointing it at `os/identity.md` (FR-009).
+Fixed content (research.md §5), identical for every newly initialized Company OS — orients a connecting AI assistant on how to start operating a freshly created Company OS. This app treats its content as opaque: it doesn't parse, validate, or know what the skill does once an assistant reads it — in this project's actual skill content, that includes running its own interview and writing `os/identity.md` and other business-specific files itself (FR-009).
+
+## MCP-connection guidance (`McpConnectManual`, not persisted)
+
+Not a stored entity — a view rendered once `os/` and `data/` exist (research.md §6), whether freshly created or already there.
+
+| Field | Type | Notes |
+|---|---|---|
+| MCP server URL | derived string | Built from the request's `host`/`x-forwarded-proto` headers, e.g. `https://your-app.vercel.app/mcp` or `http://localhost:3000/mcp`. |
+| `justCreated` | boolean | Whether `?created=1` is present (i.e. this render immediately follows a confirmation, research.md §6) — adds one extra confirmation sentence, otherwise identical content. |
 
 ## Setup template (ephemeral, client-side only)
 
@@ -57,9 +55,9 @@ Not a persisted record — included here because it's a first-class data shape t
 bucket root
 ├── AGENTS.md          → references os/skills/init.md
 ├── os/
-│   ├── identity.md     ← populated from the two form answers
 │   └── skills/
-│       └── init.md     ← fixed template
+│       └── init.md     ← fixed template; everything else under os/ (e.g. identity.md)
+│                          is created later by a connected AI assistant, not this feature
 └── data/               (empty at creation time)
 ```
 

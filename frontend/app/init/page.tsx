@@ -1,11 +1,12 @@
 import type { CSSProperties } from "react";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { checkOsStatus } from "@/lib/os/init";
 import { hasActiveOwnerSession } from "@/lib/oauth/session";
 import { verifyStorageConnection } from "@/lib/storage/client";
 import { StorageConfigError } from "@/lib/storage/errors";
 import { EnvSetupHelper } from "./EnvSetupHelper";
-import { InitForm } from "./InitForm";
+import { McpConnectManual } from "./McpConnectManual";
 
 const PAGE_STYLE: CSSProperties = {
   maxWidth: 640,
@@ -17,7 +18,7 @@ const PAGE_STYLE: CSSProperties = {
 export default async function InitPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; created?: string }>;
+  searchParams: Promise<{ created?: string }>;
 }) {
   try {
     await verifyStorageConnection();
@@ -53,25 +54,30 @@ export default async function InitPage({
   }
 
   if (status === "already_initialized") {
+    const hdrs = await headers();
+    const host = hdrs.get("host") ?? "localhost:3000";
+    const proto = hdrs.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+    const mcpUrl = `${proto}://${host}/mcp`;
+
     return (
       <main style={PAGE_STYLE}>
-        <h1>{params.created ? "Your Company OS is ready" : "A Company OS already exists"}</h1>
-        <p>
-          {params.created
-            ? "Your Company OS has been created."
-            : "This storage already has a Company OS set up."}{" "}
-          Head to the editor to start working with it.
-        </p>
-        <p>
-          <a href="/editor">Go to /editor</a>
-        </p>
+        <McpConnectManual mcpUrl={mcpUrl} justCreated={params.created === "1"} />
       </main>
     );
   }
 
   return (
     <main style={PAGE_STYLE}>
-      <InitForm error={params.error} />
+      <h1>Set up your Company OS</h1>
+      <p>
+        This creates the starting structure — <code>os/</code>, <code>data/</code>,{" "}
+        <code>AGENTS.md</code>, and <code>os/skills/init.md</code>. No details are asked here;
+        once connected, your AI assistant reads <code>os/skills/init.md</code> and interviews
+        you for the rest.
+      </p>
+      <form method="POST" action="/init/submit">
+        <button type="submit">Initialize Company OS</button>
+      </form>
     </main>
   );
 }
