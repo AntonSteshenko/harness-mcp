@@ -1,20 +1,23 @@
 "use client";
 
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { MenuIcon } from "./Icons";
 
 export function Header({
   osName,
   onToggleSidebar,
+  dict,
 }: {
   osName: string;
   onToggleSidebar: () => void;
+  dict: Dictionary["editor"]["header"];
 }) {
   return (
     <header className="app-header">
       <button
         type="button"
         className="sidebar-toggle"
-        aria-label="Toggle file browser"
+        aria-label={dict.toggleSidebar}
         onClick={onToggleSidebar}
       >
         <MenuIcon />

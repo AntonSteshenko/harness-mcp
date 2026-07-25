@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState, type CSSProperties } from "react";
+import { getDictionary, type Dictionary } from "@/lib/i18n/dictionaries";
+import type { SupportedLanguage } from "@/lib/i18n/languages";
 
 const INPUT_STYLE: CSSProperties = {
   display: "block",
@@ -44,7 +46,7 @@ function buildDotEnvSnippet(fields: Fields): string {
   return lines.join("\n");
 }
 
-function CopyButton({ text }: { text: string }) {
+function CopyButton({ text, dict }: { text: string; dict: Dictionary["init"]["envSetup"] }) {
   const [copied, setCopied] = useState(false);
 
   return (
@@ -56,7 +58,7 @@ function CopyButton({ text }: { text: string }) {
         setTimeout(() => setCopied(false), 2000);
       }}
     >
-      {copied ? "Copied!" : "Copy"}
+      {copied ? dict.copied : dict.copy}
     </button>
   );
 }
@@ -70,8 +72,14 @@ function CopyButton({ text }: { text: string }) {
  * generated snippet is reused for both a local `.env.local` file and a
  * hosting provider's environment-variables UI, since both accept the exact
  * same `NAME=value` lines — only the destination differs, not the format.
+ *
+ * Takes `language` (a plain string) rather than the assembled dictionary —
+ * the object crossing the Server→Client prop boundary must stay
+ * serializable, so this looks up its own slice via `getDictionary()`
+ * instead (spec 015, same fix as `EditorApp`).
  */
-export function EnvSetupHelper() {
+export function EnvSetupHelper({ language }: { language: SupportedLanguage }) {
+  const dict = getDictionary(language).init.envSetup;
   const [fields, setFields] = useState<Fields>({
     endpoint: "",
     region: "us-east-1",
@@ -92,16 +100,12 @@ export function EnvSetupHelper() {
 
   return (
     <>
-      <h1>Set up your environment</h1>
-      <p>
-        This app needs a storage connection and an owner sign-in credential to work. Fill in
-        the fields below to generate a ready-to-use configuration snippet — nothing you type
-        here is ever sent anywhere; it only stays in this browser tab.
-      </p>
+      <h1>{dict.title}</h1>
+      <p>{dict.description}</p>
 
-      <h2>Storage connection</h2>
+      <h2>{dict.storageHeading}</h2>
 
-      <label htmlFor="endpoint">Endpoint</label>
+      <label htmlFor="endpoint">{dict.endpoint}</label>
       <input
         style={INPUT_STYLE}
         id="endpoint"
@@ -111,7 +115,7 @@ export function EnvSetupHelper() {
         onChange={(e) => update("endpoint", e.target.value)}
       />
 
-      <label htmlFor="region">Region</label>
+      <label htmlFor="region">{dict.region}</label>
       <input
         style={INPUT_STYLE}
         id="region"
@@ -120,7 +124,7 @@ export function EnvSetupHelper() {
         onChange={(e) => update("region", e.target.value)}
       />
 
-      <label htmlFor="accessKeyId">Access key ID</label>
+      <label htmlFor="accessKeyId">{dict.accessKeyId}</label>
       <input
         style={INPUT_STYLE}
         id="accessKeyId"
@@ -129,7 +133,7 @@ export function EnvSetupHelper() {
         onChange={(e) => update("accessKeyId", e.target.value)}
       />
 
-      <label htmlFor="secretAccessKey">Secret access key</label>
+      <label htmlFor="secretAccessKey">{dict.secretAccessKey}</label>
       <input
         style={INPUT_STYLE}
         id="secretAccessKey"
@@ -138,7 +142,7 @@ export function EnvSetupHelper() {
         onChange={(e) => update("secretAccessKey", e.target.value)}
       />
 
-      <label htmlFor="bucket">Bucket</label>
+      <label htmlFor="bucket">{dict.bucket}</label>
       <input
         style={INPUT_STYLE}
         id="bucket"
@@ -153,14 +157,13 @@ export function EnvSetupHelper() {
           checked={fields.forcePathStyle}
           onChange={(e) => update("forcePathStyle", e.target.checked)}
         />{" "}
-        Use path-style addressing (required by most self-hosted S3-compatible servers, including
-        MinIO)
+        {dict.pathStyleLabel}
       </label>
 
-      <h2>Owner sign-in</h2>
-      <p>Used to sign in and approve AI assistants, manage tokens, and use the file editor.</p>
+      <h2>{dict.ownerHeading}</h2>
+      <p>{dict.ownerDescription}</p>
 
-      <label htmlFor="ownerUsername">Username</label>
+      <label htmlFor="ownerUsername">{dict.username}</label>
       <input
         style={INPUT_STYLE}
         id="ownerUsername"
@@ -169,7 +172,7 @@ export function EnvSetupHelper() {
         onChange={(e) => update("ownerUsername", e.target.value)}
       />
 
-      <label htmlFor="ownerPassword">Password</label>
+      <label htmlFor="ownerPassword">{dict.password}</label>
       <input
         style={INPUT_STYLE}
         id="ownerPassword"
@@ -178,9 +181,9 @@ export function EnvSetupHelper() {
         onChange={(e) => update("ownerPassword", e.target.value)}
       />
 
-      <h2>System name (optional)</h2>
+      <h2>{dict.systemNameHeading}</h2>
 
-      <label htmlFor="osName">What's your system called?</label>
+      <label htmlFor="osName">{dict.systemNameLabel}</label>
       <input
         style={INPUT_STYLE}
         id="osName"
@@ -190,21 +193,20 @@ export function EnvSetupHelper() {
         onChange={(e) => update("osName", e.target.value)}
       />
 
-      <h2>Configuration</h2>
+      <h2>{dict.configHeading}</h2>
       <pre style={PRE_STYLE}>{snippet}</pre>
-      <CopyButton text={snippet} />
+      <CopyButton text={snippet} dict={dict} />
 
-      <h3>Apply it</h3>
+      <h3>{dict.applyHeading}</h3>
       <p>
-        <strong>Locally</strong>: paste it into <code>frontend/.env.local</code>, then restart
-        the app (<code>npm run dev</code>).
+        <strong>{dict.applyLocallyLabel}</strong>
+        {dict.applyLocallyText}
       </p>
       <p>
-        <strong>On Vercel</strong>: open your project, go to Settings → Environment Variables,
-        and paste the lines above (Vercel accepts a full <code>.env</code>-formatted paste at
-        once — or add each line as its own variable), then redeploy.
+        <strong>{dict.applyVercelLabel}</strong>
+        {dict.applyVercelText}
       </p>
-      <p>Once applied, reload this page.</p>
+      <p>{dict.reloadNote}</p>
     </>
   );
 }

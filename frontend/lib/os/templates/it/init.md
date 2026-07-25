@@ -1,7 +1,7 @@
 ---
 tipo: skill
 skill: init
-aggiornato: 2026-07-22
+aggiornato: 2026-07-25
 ---
 
 # Init — bootstrap del Company OS
@@ -65,21 +65,21 @@ agenti per dire di no al posto vostro.
 
 Dal tipo di attività (risposta 2) ricava cosa creare:
 
-| Elemento                     | commesse | consulenza | prodotto | misto |
-| ---------------------------- | -------- | ---------- | -------- | ----- |
-| `data/clients/`              | sì       | sì         | no       | sì    |
-| `data/projects/`             | sì       | sì         | no       | sì    |
-| `data/leads/`                | sì       | sì         | sì       | sì    |
-| `data/products/`             | no       | no         | sì       | sì    |
-| `data/library/`              | sì       | sì         | sì       | sì    |
-| skill `proposta-commerciale` | sì       | sì         | no       | sì    |
-| skill `onboarding-cliente`   | sì       | sì         | no       | sì    |
-| skill `lead`                 | sì       | sì         | sì       | sì    |
-| skill `prodotto`             | no       | no         | sì       | sì    |
-| policy `pricing`, `delivery` | sì       | sì         | adattata | sì    |
+| Elemento                       | commesse | consulenza | prodotto | misto |
+| ------------------------------ | -------- | ---------- | -------- | ----- |
+| `data/clients/`                | sì       | sì         | no       | sì    |
+| `data/projects/`                | sì       | sì         | no       | sì    |
+| `data/leads/`                  | sì       | sì         | sì       | sì    |
+| `data/products/`                | no       | no         | sì       | sì    |
+| `data/library/`                 | sì       | sì         | sì       | sì    |
+| skill `commercial-proposal`    | sì       | sì         | no       | sì    |
+| skill `client-onboarding`      | sì       | sì         | no       | sì    |
+| skill `lead`                   | sì       | sì         | sì       | sì    |
+| skill `product`                | no       | no         | sì       | sì    |
+| policy `pricing`, `delivery`   | sì       | sì         | adattata | sì    |
 
-Le skill sempre create, per ogni tipo: `giornata`, `stato-progetti`,
-`weekly-review`, `articolo`. Sempre: `identity`, `comunicazione`, `index`, `inbox`,
+Le skill sempre create, per ogni tipo: `daily-plan`, `project-status`,
+`weekly-review`, `article`. Sempre: `identity`, `communication`, `index`, `inbox`,
 i template pertinenti.
 
 ---
@@ -87,7 +87,7 @@ i template pertinenti.
 ## Fase 3 — Scrivi
 
 Ordine: prima le directory, poi i file. Per ogni blueprint qui sotto, **usa le
-risposte dell'intervista**: `identity`, `pricing` e `comunicazione` nascono
+risposte dell'intervista**: `identity`, `pricing` e `communication` nascono
 **compilati**, non con segnaposto. Ciò che l'utente non ha fornito resta
 `<!-- da chiedere -->`, mai inventato. Slug = minuscolo, senza spazi né accenti.
 
@@ -121,7 +121,7 @@ Fasi (brief → esecuzione → consegna → chiusura) · regole di scope (fuori 
 nuovo scope, si annota) · stati ammessi (`attivo` `in-attesa-cliente` `in-pausa`
 `chiuso` `perso`) · checklist qualità minima (`<!-- da compilare -->`).
 
-### os/policies/comunicazione.md ← compilare con risposta 4
+### os/policies/communication.md ← compilare con risposta 4
 
 Tono (dalla risposta 4, o dai due testi incollati) · regole sempre valide (prima
 frase = la cosa che conta; una richiesta per messaggio; numeri e date precisi) ·
@@ -134,12 +134,12 @@ Crea, tra queste, solo quelle previste dalla tabella di Fase 2. Corpo di ciascun
 stessa anatomia (Quando · Cosa leggere · Passi · Output · Regole):
 
 ```
-giornata.md — "cosa faccio oggi". Legge index + status dei progetti attivi/in-attesa
+daily-plan.md — "cosa faccio oggi". Legge index + status dei progetti attivi/in-attesa
 + inbox. Raccoglie i prossimi passi, ordina per scadenza→bloccato-da-noi→valore,
 segnala gli in-attesa-cliente fermi da >5gg. Output in chat, niente scritture, max 3
 voci per "oggi".
 
-stato-progetti.md — riepilogo (sola lettura, tabella progetto·stato·prossimo·scadenza)
+project-status.md — riepilogo (sola lettura, tabella progetto·stato·prossimo·scadenza)
 oppure aggiornamento (leggi status.md → riscrivilo; decisione → riga datata in log.md;
 chiuso/perso → aggiorna index). Mai toccare brief.md qui.
 
@@ -147,16 +147,16 @@ weekly-review.md — svuota inbox smistando ogni riga (progetto/cliente/idea/lea
 dicendo cosa cancelli), verifica l'indice, segnala i fermi da >14gg, chiudi il finito.
 Dopo, inbox resta con la sola intestazione.
 
-articolo.md — una tesi in una frase, lettore definito, scaletta prima del testo, esempi
+article.md — una tesi in una frase, lettore definito, scaletta prima del testo, esempi
 veri, passa la lista parole vietate. Caso studio che nomina un cliente = serve la sua
 approvazione, altrimenti anonimizza. Nessun dato inventato.
 
-proposta-commerciale.md — [solo se prevista] legge identity+pricing+comunicazione+
+commercial-proposal.md — [solo se prevista] legge identity+pricing+communication+
 scheda cliente/lead. Servono: problema, risultato atteso, scadenza, budget; se manca,
 chiedi. Struttura: problema→proposta→deliverable→fuori scope→tempi→investimento→
 prossimo passo. Nessun prezzo inventato: se pricing non copre, [DA DEFINIRE].
 
-onboarding-cliente.md — [solo se prevista] crea profile+log del cliente dai template,
+client-onboarding.md — [solo se prevista] crea profile+log del cliente dai template,
 crea il primo progetto (brief+status+log), la proposta firmata È il brief, archivia il
 lead, aggiorna index. Uno slug per sempre.
 
@@ -164,15 +164,15 @@ lead.md — [solo se prevista] stati nuovo→qualificato→proposta-inviata→vi
 Ogni lead ha un prossimo-passo con data. Motivo della perdita obbligatorio. Qualifica
 contro identity (siamo dentro il perimetro?) e index (abbiamo capacità?).
 
-prodotto.md — [solo se prevista] roadmap a tre sezioni (ora≤3 · prossimo · forse),
+product.md — [solo se prevista] roadmap a tre sezioni (ora≤3 · prossimo · forse),
 niente date, il prodotto slitta sempre dietro le commesse. Feedback datato con fonte,
 non diventa roadmap finché non ricorre. Rilascio → riga in log, overview aggiornata.
 ```
 
 ### os/templates/
 
-`cliente.md` (front-matter tipo/slug/stato/linea/owner/dal · contesto · referenti ·
-come lavorare con loro · storia · amministrativo). `progetto.md` (i tre file:
+`client.md` (front-matter tipo/slug/stato/linea/owner/dal · contesto · referenti ·
+come lavorare con loro · storia · amministrativo). `project.md` (i tre file:
 `brief.md` immutabile con obiettivo/deliverable/fuori-scope/vincoli/criteri;
 `status.md` sovrascrivibile con situazione/prossimi-passi/blocchi; `log.md` in coda).
 Crea `products/` template solo se il tipo lo prevede.
@@ -203,7 +203,7 @@ Chiudi in chat, non con altre scritture:
 - **Da compilare** — i file rimasti con segnaposto (tipicamente i campi numerici di
   pricing e gli anagrafici). Solo quelli che l'utente non ha già coperto.
 - **Prossimo passo** — di norma: "vuoi inserire il primo cliente/progetto reale?"
-  (che attiva `onboarding-cliente`) oppure "il primo prodotto".
+  (che attiva `client-onboarding`) oppure "il primo prodotto".
 
 ---
 
@@ -217,3 +217,7 @@ Chiudi in chat, non con altre scritture:
   `data/products/` vuota, un prodotto puro non deve trovarsi la skill proposta.
 - `init` è la fonte di verità della struttura. Per cambiare l'ossatura, si edita
   questa skill e si rigenera — non si patcha a mano file per file.
+- **Nomi fissi**: ogni cartella/file creato usa sempre il nome inglese fisso indicato
+  in questa skill (es. `daily-plan.md`, non una traduzione italiana) — indipendentemente
+  dalla lingua confermata per il Company OS. Solo il contenuto dei file è nella lingua
+  scelta.

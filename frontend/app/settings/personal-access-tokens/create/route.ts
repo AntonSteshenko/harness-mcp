@@ -3,6 +3,8 @@ import { createPersonalAccessToken } from "@/lib/oauth/personalAccessTokens";
 import { hasActiveOwnerSession } from "@/lib/oauth/session";
 import { appendAuditLine } from "@/lib/oauth/store";
 import type { AuditLogEntry } from "@/lib/oauth/types";
+import { resolveLanguage } from "@/lib/i18n/resolve";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
 function escapeHtml(value: string): string {
   return value
@@ -43,16 +45,19 @@ export async function POST(request: NextRequest) {
     } satisfies AuditLogEntry),
   );
 
+  const language = await resolveLanguage();
+  const dict = getDictionary(language).settings.pat;
+
   // Rendered directly in the response body — never via redirect/query string,
   // so the secret never lands in a URL, browser history, or server access
   // log (research.md §4). This is the only place it is ever shown (FR-002).
   const html = `<!doctype html>
-<html>
+<html lang="${language}">
 <body style="font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto;">
-  <h1>Personal access token created</h1>
-  <p>Copy this token now — it will not be shown again:</p>
+  <h1>${escapeHtml(dict.createdTitle)}</h1>
+  <p>${escapeHtml(dict.createdBody)}</p>
   <pre style="background: #f5f5f5; padding: 1rem; overflow-wrap: anywhere; white-space: pre-wrap;">${escapeHtml(secretValue)}</pre>
-  <p><a href="/settings/personal-access-tokens">Back to personal access tokens</a></p>
+  <p><a href="/settings/personal-access-tokens">${escapeHtml(dict.backLink)}</a></p>
 </body>
 </html>`;
 

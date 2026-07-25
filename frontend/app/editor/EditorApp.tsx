@@ -1,17 +1,27 @@
 "use client";
 
 import { useState } from "react";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import type { SupportedLanguage } from "@/lib/i18n/languages";
 import { FileEditor } from "./FileEditor";
 import { FileTree } from "./FileTree";
 import { Header } from "./Header";
 
-export default function EditorApp({ osName }: { osName: string }) {
+/**
+ * Takes `language` (a plain string), not the assembled dictionary object —
+ * several dictionary entries are functions (interpolated messages), and
+ * functions can't cross the Server→Client Component prop boundary. Each
+ * client component looks up its own slice via `getDictionary()` instead,
+ * which is just a plain synchronous object lookup, safe to run client-side.
+ */
+export default function EditorApp({ osName, language }: { osName: string; language: SupportedLanguage }) {
+  const dict = getDictionary(language).editor;
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   function handleSelectFile(path: string) {
-    if (isDirty && !window.confirm("You have unsaved changes. Discard them and open a different file?")) {
+    if (isDirty && !window.confirm(dict.file.discardConfirm)) {
       return;
     }
     setSelectedPath(path);
@@ -30,20 +40,21 @@ export default function EditorApp({ osName }: { osName: string }) {
 
   return (
     <div className="app-shell">
-      <Header osName={osName} onToggleSidebar={() => setSidebarOpen((open) => !open)} />
+      <Header osName={osName} onToggleSidebar={() => setSidebarOpen((open) => !open)} dict={dict.header} />
       <div className="body-row">
         <div className={`sidebar${sidebarOpen ? " sidebar-open" : ""}`}>
           <FileTree
             onSelectFile={handleSelectFile}
             onFileDeleted={handleFileDeleted}
             onFolderDeleted={handleFolderDeleted}
+            dict={dict.tree}
           />
         </div>
         {sidebarOpen && (
           <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} aria-hidden="true" />
         )}
         <div className="editor-pane">
-          <FileEditor path={selectedPath} onDirtyChange={setIsDirty} />
+          <FileEditor path={selectedPath} onDirtyChange={setIsDirty} dict={dict.file} csvDict={dict.csv} />
         </div>
       </div>
       <style jsx>{`

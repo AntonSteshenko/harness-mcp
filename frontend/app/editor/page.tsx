@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getOsName } from "@/lib/config/app";
 import { hasActiveOwnerSession } from "@/lib/oauth/session";
+import { resolveLanguage } from "@/lib/i18n/resolve";
 import EditorApp from "./EditorApp";
 
 export default async function EditorPage() {
@@ -9,5 +10,7 @@ export default async function EditorPage() {
     redirect(`/oauth/login?continue=${encodeURIComponent("/editor")}`);
   }
 
-  return <EditorApp osName={getOsName()} />;
+  const language = await resolveLanguage();
+
+  return <EditorApp osName={getOsName()} language={language} />;
 }

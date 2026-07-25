@@ -2,6 +2,8 @@ import type { CSSProperties } from "react";
 import { redirect } from "next/navigation";
 import { hasActiveOwnerSession } from "@/lib/oauth/session";
 import { listPersonalAccessTokens } from "@/lib/oauth/personalAccessTokens";
+import { resolveLanguage } from "@/lib/i18n/resolve";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
 const cellStyle: CSSProperties = { textAlign: "left", padding: "0.5rem", borderBottom: "1px solid #ddd" };
 
@@ -13,22 +15,23 @@ export default async function PersonalAccessTokensPage() {
   }
 
   const tokens = await listPersonalAccessTokens();
+  const dict = getDictionary(await resolveLanguage()).settings.pat;
 
   return (
     <main style={{ maxWidth: 720, margin: "2rem auto", fontFamily: "system-ui, sans-serif" }}>
-      <h1>Personal access tokens</h1>
-      <p>Use a personal access token as a bearer credential for MCP clients that can&apos;t complete an OAuth sign-in.</p>
+      <h1>{dict.title}</h1>
+      <p>{dict.description}</p>
 
       {tokens.length === 0 ? (
-        <p>No personal access tokens yet.</p>
+        <p>{dict.empty}</p>
       ) : (
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr>
-              <th style={cellStyle}>Name</th>
-              <th style={cellStyle}>Status</th>
-              <th style={cellStyle}>Created</th>
-              <th style={cellStyle}>Last used</th>
+              <th style={cellStyle}>{dict.name}</th>
+              <th style={cellStyle}>{dict.status}</th>
+              <th style={cellStyle}>{dict.created}</th>
+              <th style={cellStyle}>{dict.lastUsed}</th>
               <th style={cellStyle} />
             </tr>
           </thead>
@@ -38,13 +41,13 @@ export default async function PersonalAccessTokensPage() {
               .map((token) => (
                 <tr key={token.id}>
                   <td style={cellStyle}>{token.name}</td>
-                  <td style={cellStyle}>{token.revoked ? "revoked" : "active"}</td>
+                  <td style={cellStyle}>{token.revoked ? dict.revoked : dict.active}</td>
                   <td style={cellStyle}>{new Date(token.createdAt).toLocaleString()}</td>
-                  <td style={cellStyle}>{token.lastUsedAt ? new Date(token.lastUsedAt).toLocaleString() : "never"}</td>
+                  <td style={cellStyle}>{token.lastUsedAt ? new Date(token.lastUsedAt).toLocaleString() : dict.never}</td>
                   <td style={cellStyle}>
                     {!token.revoked && (
                       <form method="POST" action={`/settings/personal-access-tokens/${token.id}/revoke`}>
-                        <button type="submit">Revoke</button>
+                        <button type="submit">{dict.revoke}</button>
                       </form>
                     )}
                   </td>
@@ -54,10 +57,10 @@ export default async function PersonalAccessTokensPage() {
         </table>
       )}
 
-      <h2>Create a new token</h2>
+      <h2>{dict.createTitle}</h2>
       <form method="POST" action="/settings/personal-access-tokens/create" style={{ display: "flex", gap: 8 }}>
-        <input type="text" name="name" placeholder="Name (e.g. laptop, ci script)" required style={{ flex: 1 }} />
-        <button type="submit">Generate token</button>
+        <input type="text" name="name" placeholder={dict.namePlaceholder} required style={{ flex: 1 }} />
+        <button type="submit">{dict.generate}</button>
       </form>
     </main>
   );

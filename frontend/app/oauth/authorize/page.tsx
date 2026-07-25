@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { getRecord } from "@/lib/oauth/store";
 import type { RegisteredClient } from "@/lib/oauth/types";
 import { hasActiveOwnerSession } from "@/lib/oauth/session";
+import { resolveLanguage } from "@/lib/i18n/resolve";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
 const PAGE_STYLE: CSSProperties = {
   maxWidth: 420,
@@ -16,10 +18,10 @@ function first(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
-function ErrorPage({ message }: { message: string }) {
+function ErrorPage({ message, title }: { message: string; title: string }) {
   return (
     <main style={PAGE_STYLE}>
-      <h1>Can&apos;t continue</h1>
+      <h1>{title}</h1>
       <p>{message}</p>
     </main>
   );
@@ -38,17 +40,18 @@ export default async function AuthorizePage({ searchParams }: { searchParams: Pr
   const state = first(params.state) ?? "";
   const codeChallenge = first(params.code_challenge);
   const codeChallengeMethod = first(params.code_challenge_method) ?? "S256";
+  const dict = getDictionary(await resolveLanguage()).oauth.authorize;
 
   if (!clientId || !redirectUri || !codeChallenge) {
-    return <ErrorPage message="Missing required parameters (client_id, redirect_uri, code_challenge)." />;
+    return <ErrorPage message={dict.errorMissingParams} title={dict.cantContinue} />;
   }
   if (codeChallengeMethod !== "S256") {
-    return <ErrorPage message="Only the S256 code_challenge_method is supported." />;
+    return <ErrorPage message={dict.errorUnsupportedChallenge} title={dict.cantContinue} />;
   }
 
   const client = await getRecord<RegisteredClient>(`clients/${clientId}`);
   if (!client || !client.redirectUris.includes(redirectUri)) {
-    return <ErrorPage message="Unknown client or redirect_uri." />;
+    return <ErrorPage message={dict.errorUnknownClient} title={dict.cantContinue} />;
   }
 
   const signedIn = await hasActiveOwnerSession();
@@ -65,20 +68,18 @@ export default async function AuthorizePage({ searchParams }: { searchParams: Pr
 
   return (
     <main style={PAGE_STYLE}>
-      <h1>Authorize access</h1>
-      <p>
-        <strong>{client.clientName}</strong> is requesting access to your MCP storage tools.
-      </p>
+      <h1>{dict.title}</h1>
+      <p>{dict.requesting(client.clientName)}</p>
       <form method="POST" action="/oauth/authorize/decision">
         <input type="hidden" name="client_id" value={clientId} />
         <input type="hidden" name="redirect_uri" value={redirectUri} />
         <input type="hidden" name="state" value={state} />
         <input type="hidden" name="code_challenge" value={codeChallenge} />
         <button type="submit" name="decision" value="approve">
-          Approve
+          {dict.approve}
         </button>{" "}
         <button type="submit" name="decision" value="deny">
-          Deny
+          {dict.deny}
         </button>
       </form>
     </main>

@@ -5,7 +5,11 @@ import { checkOsStatus } from "@/lib/os/init";
 import { hasActiveOwnerSession } from "@/lib/oauth/session";
 import { verifyStorageConnection } from "@/lib/storage/client";
 import { StorageConfigError } from "@/lib/storage/errors";
+import { detectBrowserLanguage } from "@/lib/i18n/detect";
+import { resolveLanguage } from "@/lib/i18n/resolve";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 import { EnvSetupHelper } from "./EnvSetupHelper";
+import { LanguageConfirm } from "./LanguageConfirm";
 import { McpConnectManual } from "./McpConnectManual";
 
 const PAGE_STYLE: CSSProperties = {
@@ -25,9 +29,16 @@ export default async function InitPage({
   } catch (err) {
     if (!(err instanceof StorageConfigError)) throw err;
 
+    // No Company OS can exist yet (storage itself isn't reachable), so this
+    // uses live browser detection directly rather than resolveLanguage() —
+    // which would call checkOsStatus() and fail on the same unreachable
+    // storage (spec 015 FR-014, research.md §7).
+    const hdrs = await headers();
+    const language = detectBrowserLanguage(hdrs.get("accept-language"));
+
     return (
       <main style={PAGE_STYLE}>
-        <EnvSetupHelper />
+        <EnvSetupHelper language={language} />
       </main>
     );
   }
@@ -39,16 +50,14 @@ export default async function InitPage({
 
   const status = await checkOsStatus();
   const params = await searchParams;
+  const language = await resolveLanguage();
+  const dict = getDictionary(language);
 
   if (status === "partial") {
     return (
       <main style={PAGE_STYLE}>
-        <h1>Unexpected storage state</h1>
-        <p>
-          This storage is in an unexpected, partially-initialized state — only one of{" "}
-          <code>os/</code> or <code>data/</code> exists. No setup action is available here;
-          resolve this manually before continuing.
-        </p>
+        <h1>{dict.init.unexpectedStateTitle}</h1>
+        <p>{dict.init.unexpectedStateBody}</p>
       </main>
     );
   }
@@ -61,22 +70,19 @@ export default async function InitPage({
 
     return (
       <main style={PAGE_STYLE}>
-        <McpConnectManual mcpUrl={mcpUrl} justCreated={params.created === "1"} />
+        <McpConnectManual mcpUrl={mcpUrl} justCreated={params.created === "1"} dict={dict.init.mcpConnect} />
       </main>
     );
   }
 
   return (
     <main style={PAGE_STYLE}>
-      <h1>Set up your Company OS</h1>
-      <p>
-        This creates the starting structure — <code>os/</code>, <code>data/</code>,{" "}
-        <code>AGENTS.md</code>, and <code>os/skills/init.md</code>. No details are asked here;
-        once connected, your AI assistant reads <code>os/skills/init.md</code> and interviews
-        you for the rest.
-      </p>
+      <h1>{dict.init.setupTitle}</h1>
+      <p>{dict.init.setupDescription}</p>
+      <p>{dict.init.languagePrompt}</p>
       <form method="POST" action="/init/submit">
-        <button type="submit">Initialize Company OS</button>
+        <LanguageConfirm detected={language} />
+        <button type="submit">{dict.init.submit}</button>
       </form>
     </main>
   );

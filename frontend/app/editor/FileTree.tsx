@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { authedFetch } from "@/lib/editorFetch";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 import {
   ChevronIcon,
   DownloadIcon,
@@ -34,11 +35,12 @@ export interface FileTreeProps {
   /** Called with a folder's path after it's successfully deleted, so the
    * caller can close the editor if it had a file open from inside it. */
   onFolderDeleted?: (path: string) => void;
+  dict: Dictionary["editor"]["tree"];
 }
 
 /** Root of the browsable tree (FR-001). Lazily fetches each directory's
  * contents from GET /api/tree as it's expanded (research.md §2). */
-export function FileTree({ onSelectFile, onFileDeleted, onFolderDeleted }: FileTreeProps) {
+export function FileTree({ onSelectFile, onFileDeleted, onFolderDeleted, dict }: FileTreeProps) {
   return (
     <DirectoryNode
       path=""
@@ -48,6 +50,7 @@ export function FileTree({ onSelectFile, onFileDeleted, onFolderDeleted }: FileT
       onFileDeleted={onFileDeleted}
       onFolderDeleted={onFolderDeleted}
       defaultExpanded
+      dict={dict}
     />
   );
 }
@@ -73,7 +76,7 @@ function isMarkdownFile(name: string): boolean {
 /** Prompts for a new file/folder name, rejecting path separators and
  * treating a blank or cancelled entry as "nothing to create" (FR-007).
  * Shared by the New file (US2) and New folder (US3) actions. */
-function promptForEntryName(promptMessage: string): string | null {
+function promptForEntryName(promptMessage: string, dict: Dictionary["editor"]["tree"]): string | null {
   const raw = window.prompt(promptMessage);
   if (raw === null) return null;
 
@@ -81,7 +84,7 @@ function promptForEntryName(promptMessage: string): string | null {
   if (name === "") return null;
 
   if (name.includes("/")) {
-    window.alert(`"${name}" can't contain "/" — enter a plain name.`);
+    window.alert(dict.invalidName(name));
     return null;
   }
 
@@ -149,7 +152,15 @@ interface MenuItem {
 /** A single "more actions" (⋮) control per row, revealing file/folder
  * operations only on demand instead of showing every icon on every row at
  * once — keeps rows readable and works the same by touch or by mouse. */
-function RowMenu({ items, disabled }: { items: MenuItem[]; disabled?: boolean }) {
+function RowMenu({
+  items,
+  disabled,
+  moreActionsLabel,
+}: {
+  items: MenuItem[];
+  disabled?: boolean;
+  moreActionsLabel: string;
+}) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -177,8 +188,8 @@ function RowMenu({ items, disabled }: { items: MenuItem[]; disabled?: boolean })
     <div ref={containerRef} style={{ position: "relative", flexShrink: 0 }}>
       <button
         type="button"
-        title="More actions"
-        aria-label="More actions"
+        title={moreActionsLabel}
+        aria-label={moreActionsLabel}
         aria-haspopup="menu"
         aria-expanded={open}
         disabled={disabled}
@@ -223,6 +234,7 @@ function DirectoryNode({
   onFolderDeleted,
   onDeleted,
   defaultExpanded,
+  dict,
 }: {
   path: string;
   label: string;
@@ -235,6 +247,7 @@ function DirectoryNode({
    * (depth 0), which can't be deleted. */
   onDeleted?: () => void;
   defaultExpanded?: boolean;
+  dict: Dictionary["editor"]["tree"];
 }) {
   const [expanded, setExpanded] = useState(Boolean(defaultExpanded));
   const [entries, setEntries] = useState<TreeListing | null>(null);
@@ -255,7 +268,7 @@ function DirectoryNode({
     authedFetch(`/api/tree?path=${encodeURIComponent(path)}`)
       .then(async (res) => {
         const data = await res.json();
-        if (!res.ok) throw new Error(data.message ?? "Failed to load directory");
+        if (!res.ok) throw new Error(data.message ?? dict.dirLoadFailed);
         if (!cancelled) setEntries(data as TreeListing);
       })
       .catch((err: Error) => {
@@ -292,11 +305,7 @@ function DirectoryNode({
     const skippedCount = picked.length - mdFiles.length;
 
     if (mdFiles.length === 0) {
-      window.alert(
-        skippedCount > 0
-          ? `Nothing to upload — none of the ${skippedCount} selected file(s) are Markdown (.md) files.`
-          : "Nothing to upload.",
-      );
+      window.alert(skippedCount > 0 ? dict.nothingToUploadFiltered(skippedCount) : dict.nothingToUpload);
       return;
     }
 
@@ -314,7 +323,7 @@ function DirectoryNode({
     const conflicts = batch.filter((f) => !f.relativePath.includes("/") && existingNames.has(f.relativePath));
     if (conflicts.length > 0) {
       const names = conflicts.map((f) => f.relativePath).join(", ");
-      if (!window.confirm(`This will overwrite existing file(s): ${names}. Continue?`)) {
+      if (!window.confirm(dict.overwriteFilesConfirm(names))) {
         return;
       }
     }
@@ -327,23 +336,23 @@ function DirectoryNode({
         body: JSON.stringify({ basePath: path, files: batch }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message ?? "Upload failed");
+      if (!res.ok) throw new Error(data.message ?? dict.uploadFailedLabel);
 
       const results = data.results as UploadResult[];
       const uploaded = results.filter((r) => r.status === "uploaded").length;
       const failed = results.filter((r) => r.status === "failed");
       const skipped = results.filter((r) => r.status === "skipped").length + skippedCount;
 
-      let summary = `Uploaded ${uploaded} file(s), skipped ${skipped}.`;
+      let summary = dict.uploadSummary(uploaded, skipped);
       if (failed.length > 0) {
-        summary += ` Failed: ${failed.map((f) => `${f.path} (${f.message})`).join(", ")}`;
+        summary += dict.uploadSummaryFailedSuffix(failed.map((f) => `${f.path} (${f.message})`).join(", "));
       }
       window.alert(summary);
 
       setExpanded(true);
       await refreshEntries();
     } catch (err) {
-      window.alert(`Upload failed: ${(err as Error).message}`);
+      window.alert(dict.uploadFailed((err as Error).message));
     } finally {
       setBusy(false);
     }
@@ -354,8 +363,8 @@ function DirectoryNode({
     try {
       const res = await authedFetch(`/api/download-zip?path=${encodeURIComponent(path)}`);
       if (!res.ok) {
-        const data = await res.json().catch(() => ({ message: "Download failed" }));
-        window.alert(data.message ?? "Nothing to download.");
+        const data = await res.json().catch(() => ({ message: dict.downloadNothing }));
+        window.alert(data.message ?? dict.downloadNothing);
         return;
       }
       const blob = await res.blob();
@@ -368,7 +377,7 @@ function DirectoryNode({
       a.remove();
       URL.revokeObjectURL(url);
     } catch (err) {
-      window.alert(`Download failed: ${(err as Error).message}`);
+      window.alert(dict.downloadFailed((err as Error).message));
     } finally {
       setBusy(false);
     }
@@ -378,17 +387,17 @@ function DirectoryNode({
    * directory's listing either way, since a failure may mean the file was
    * already removed elsewhere (Edge Cases). */
   async function handleDeleteFile(filePath: string) {
-    if (!window.confirm(`Delete "${baseName(filePath)}"? This can't be undone.`)) return;
+    if (!window.confirm(dict.deleteFileConfirm(baseName(filePath)))) return;
 
     setBusy(true);
     try {
       const res = await authedFetch(`/api/file?path=${encodeURIComponent(filePath)}`, { method: "DELETE" });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message ?? "Delete failed");
+      if (!res.ok) throw new Error(data.message ?? dict.deleteFailedLabel);
 
       onFileDeleted?.(filePath);
     } catch (err) {
-      window.alert(`Delete failed: ${(err as Error).message}`);
+      window.alert(dict.deleteFailed((err as Error).message));
     } finally {
       await refreshEntries();
       setBusy(false);
@@ -399,13 +408,13 @@ function DirectoryNode({
    * it would overwrite an existing file, then opens it in the editor
    * (FR-004, FR-006, FR-007, FR-010). */
   async function handleCreateFile() {
-    const name = promptForEntryName("New file name:");
+    const name = promptForEntryName(dict.promptNewFile, dict);
     if (!name) return;
 
     const targetPath = joinPath(path, name);
 
     const existingNames = new Set((entries?.files ?? []).map((f) => baseName(f.path)));
-    if (existingNames.has(name) && !window.confirm(`This will overwrite the existing file "${name}". Continue?`)) {
+    if (existingNames.has(name) && !window.confirm(dict.overwriteFileConfirm(name))) {
       return;
     }
 
@@ -417,13 +426,13 @@ function DirectoryNode({
         body: JSON.stringify({ path: targetPath, content: "" }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message ?? "Create failed");
+      if (!res.ok) throw new Error(data.message ?? dict.createFailedLabel);
 
       setExpanded(true);
       await refreshEntries();
       onSelectFile(targetPath);
     } catch (err) {
-      window.alert(`Create failed: ${(err as Error).message}`);
+      window.alert(dict.createFailed((err as Error).message));
     } finally {
       setBusy(false);
     }
@@ -434,9 +443,7 @@ function DirectoryNode({
    * top-level tree (via `onFolderDeleted`) so the editor can close a file
    * that was open from inside this folder. */
   async function handleDeleteFolder() {
-    if (
-      !window.confirm(`Delete folder "${label}" and everything inside it? This can't be undone.`)
-    ) {
+    if (!window.confirm(dict.deleteFolderConfirm(label))) {
       return;
     }
 
@@ -444,12 +451,12 @@ function DirectoryNode({
     try {
       const res = await authedFetch(`/api/directory?path=${encodeURIComponent(path)}`, { method: "DELETE" });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message ?? "Delete failed");
+      if (!res.ok) throw new Error(data.message ?? dict.deleteFailedLabel);
 
       onFolderDeleted?.(path);
       onDeleted?.();
     } catch (err) {
-      window.alert(`Delete failed: ${(err as Error).message}`);
+      window.alert(dict.deleteFailed((err as Error).message));
       setBusy(false);
     }
   }
@@ -458,7 +465,7 @@ function DirectoryNode({
    * Idempotent if the folder already exists; errors on a name collision
    * with an existing file. */
   async function handleCreateFolder() {
-    const name = promptForEntryName("New folder name:");
+    const name = promptForEntryName(dict.promptNewFolder, dict);
     if (!name) return;
 
     const targetPath = joinPath(path, name);
@@ -471,25 +478,25 @@ function DirectoryNode({
         body: JSON.stringify({ path: targetPath }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message ?? "Create failed");
+      if (!res.ok) throw new Error(data.message ?? dict.createFailedLabel);
 
       setExpanded(true);
       await refreshEntries();
     } catch (err) {
-      window.alert(`Create failed: ${(err as Error).message}`);
+      window.alert(dict.createFailed((err as Error).message));
     } finally {
       setBusy(false);
     }
   }
 
   const menuItems: MenuItem[] = [
-    { label: "New file", icon: <NewFileIcon />, onClick: handleCreateFile },
-    { label: "New folder", icon: <NewFolderIcon />, onClick: handleCreateFolder },
-    { label: "Upload files", icon: <UploadIcon />, onClick: () => uploadFilesInputRef.current?.click() },
-    { label: "Upload folder", icon: <UploadIcon />, onClick: () => uploadFolderInputRef.current?.click() },
-    { label: "Download as zip", icon: <DownloadIcon />, onClick: handleDownloadFolder },
+    { label: dict.menuNewFile, icon: <NewFileIcon />, onClick: handleCreateFile },
+    { label: dict.menuNewFolder, icon: <NewFolderIcon />, onClick: handleCreateFolder },
+    { label: dict.menuUploadFiles, icon: <UploadIcon />, onClick: () => uploadFilesInputRef.current?.click() },
+    { label: dict.menuUploadFolder, icon: <UploadIcon />, onClick: () => uploadFolderInputRef.current?.click() },
+    { label: dict.menuDownloadZip, icon: <DownloadIcon />, onClick: handleDownloadFolder },
     ...(depth > 0
-      ? [{ label: "Delete folder", icon: <TrashIcon />, onClick: handleDeleteFolder, destructive: true }]
+      ? [{ label: dict.menuDeleteFolder, icon: <TrashIcon />, onClick: handleDeleteFolder, destructive: true }]
       : []),
   ];
 
@@ -504,7 +511,7 @@ function DirectoryNode({
           <FolderIcon />
           <span style={labelStyle}>{label}</span>
         </div>
-        <RowMenu items={menuItems} disabled={busy} />
+        <RowMenu items={menuItems} disabled={busy} moreActionsLabel={dict.moreActions} />
         <input
           ref={uploadFilesInputRef}
           type="file"
@@ -530,10 +537,10 @@ function DirectoryNode({
       </div>
       {expanded && (
         <div>
-          {loading && <div style={{ color: "#888" }}>Loading…</div>}
+          {loading && <div style={{ color: "#888" }}>{dict.loading}</div>}
           {error && <div style={{ color: "crimson" }}>{error}</div>}
           {entries && entries.directories.length === 0 && entries.files.length === 0 && (
-            <div style={{ color: "#888", fontStyle: "italic", paddingLeft: 30 }}>(empty)</div>
+            <div style={{ color: "#888", fontStyle: "italic", paddingLeft: 30 }}>{dict.empty}</div>
           )}
           {entries?.directories.map((d) => (
             <DirectoryNode
@@ -545,6 +552,7 @@ function DirectoryNode({
               onFileDeleted={onFileDeleted}
               onFolderDeleted={onFolderDeleted}
               onDeleted={refreshEntries}
+              dict={dict}
             />
           ))}
           {entries?.files.map((f) => (
@@ -563,9 +571,10 @@ function DirectoryNode({
               <span style={{ ...labelStyle, flex: 1, minWidth: 0 }}>{baseName(f.path)}</span>
               <RowMenu
                 items={[
-                  { label: "Delete", icon: <TrashIcon />, onClick: () => handleDeleteFile(f.path), destructive: true },
+                  { label: dict.menuDelete, icon: <TrashIcon />, onClick: () => handleDeleteFile(f.path), destructive: true },
                 ]}
                 disabled={busy}
+                moreActionsLabel={dict.moreActions}
               />
             </div>
           ))}

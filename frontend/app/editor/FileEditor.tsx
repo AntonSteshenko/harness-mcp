@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { authedFetch } from "@/lib/editorFetch";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { CsvTableEditor } from "./CsvTableEditor";
 import { MarkdownEditor } from "./MarkdownEditor";
 import { PlainTextEditor } from "./PlainTextEditor";
@@ -30,6 +31,8 @@ export function deriveKind(path: string): EditorSession["kind"] {
 export interface FileEditorProps {
   path: string | null;
   onDirtyChange?: (dirty: boolean) => void;
+  dict: Dictionary["editor"]["file"];
+  csvDict: Dictionary["editor"]["csv"];
 }
 
 type LoadState =
@@ -39,7 +42,7 @@ type LoadState =
   | { status: "error"; message: string }
   | { status: "ready"; session: EditorSession };
 
-export function FileEditor({ path, onDirtyChange }: FileEditorProps) {
+export function FileEditor({ path, onDirtyChange, dict, csvDict }: FileEditorProps) {
   const [state, setState] = useState<LoadState>({ status: "idle" });
   // Markdown/CSV files open showing the rendered view by default; "Edit"/"Raw"
   // is an explicit switch, never shown side-by-side with the preview/table.
@@ -67,7 +70,7 @@ export function FileEditor({ path, onDirtyChange }: FileEditorProps) {
           return;
         }
         if (!res.ok) {
-          setState({ status: "error", message: data.message ?? "Failed to load file" });
+          setState({ status: "error", message: data.message ?? dict.loadFailed });
           return;
         }
 
@@ -138,7 +141,7 @@ export function FileEditor({ path, onDirtyChange }: FileEditorProps) {
         // Save failed: keep currentContent untouched, surface the error (FR-010).
         setState((prev) =>
           prev.status === "ready"
-            ? { ...prev, session: { ...prev.session, saveState: "error", saveError: data.message ?? "Save failed" } }
+            ? { ...prev, session: { ...prev.session, saveState: "error", saveError: data.message ?? dict.saveFailedLabel } }
             : prev,
         );
         return;
@@ -163,10 +166,10 @@ export function FileEditor({ path, onDirtyChange }: FileEditorProps) {
   }
 
   if (!path || state.status === "idle") {
-    return <p style={{ color: "#888" }}>Select a file to view its content.</p>;
+    return <p style={{ color: "#888" }}>{dict.selectPrompt}</p>;
   }
   if (state.status === "loading") {
-    return <p style={{ color: "#888" }}>Loading &quot;{path}&quot;…</p>;
+    return <p style={{ color: "#888" }}>{dict.loading(path)}</p>;
   }
   if (state.status === "unsupported") {
     return <p style={{ color: "#888" }}>{state.message}</p>;
@@ -194,7 +197,7 @@ export function FileEditor({ path, onDirtyChange }: FileEditorProps) {
                 cursor: "pointer",
               }}
             >
-              {session.kind === "csv" ? "Table" : "Preview"}
+              {session.kind === "csv" ? dict.table : dict.preview}
             </button>
             <button
               type="button"
@@ -208,20 +211,20 @@ export function FileEditor({ path, onDirtyChange }: FileEditorProps) {
                 cursor: "pointer",
               }}
             >
-              {session.kind === "csv" ? "Raw" : "Edit"}
+              {session.kind === "csv" ? dict.raw : dict.edit}
             </button>
           </div>
         )}
-        {dirty && <span style={{ color: "#b8860b" }}>● unsaved changes</span>}
+        {dirty && <span style={{ color: "#b8860b" }}>{dict.unsavedChanges}</span>}
         <button onClick={handleSave} disabled={session.saveState === "saving" || !dirty}>
-          {session.saveState === "saving" ? "Saving…" : "Save"}
+          {session.saveState === "saving" ? dict.saving : dict.save}
         </button>
         {session.saveState === "idle" && !dirty && session.loadedContent !== "" && (
-          <span style={{ color: "#2e7d32" }}>Saved</span>
+          <span style={{ color: "#2e7d32" }}>{dict.saved}</span>
         )}
       </div>
       {session.saveState === "error" && (
-        <p style={{ color: "crimson" }}>Save failed: {session.saveError}</p>
+        <p style={{ color: "crimson" }}>{dict.saveFailed(session.saveError ?? "")}</p>
       )}
       {session.kind === "markdown" ? (
         <MarkdownEditor value={session.currentContent} onChange={handleContentChange} mode={mode} />
@@ -230,6 +233,7 @@ export function FileEditor({ path, onDirtyChange }: FileEditorProps) {
           value={session.currentContent}
           onChange={handleContentChange}
           mode={mode === "preview" ? "table" : "raw"}
+          dict={csvDict}
         />
       ) : (
         <PlainTextEditor value={session.currentContent} onChange={handleContentChange} />

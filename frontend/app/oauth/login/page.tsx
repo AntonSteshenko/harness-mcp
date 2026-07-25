@@ -1,4 +1,6 @@
 import type { CSSProperties } from "react";
+import { resolveLanguage } from "@/lib/i18n/resolve";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
 const PAGE_STYLE: CSSProperties = {
   maxWidth: 360,
@@ -14,11 +16,6 @@ const INPUT_STYLE: CSSProperties = {
   boxSizing: "border-box",
 };
 
-const ERROR_MESSAGES: Record<string, string> = {
-  invalid_credentials: "Incorrect username or password.",
-  locked_out: "Too many failed attempts — try again in a few minutes.",
-};
-
 export default async function LoginPage({
   searchParams,
 }: {
@@ -26,20 +23,26 @@ export default async function LoginPage({
 }) {
   const params = await searchParams;
   const continueUrl = params.continue ?? "/settings/connected-apps";
-  const errorMessage = params.error ? ERROR_MESSAGES[params.error] ?? "Sign-in failed." : null;
+  const dict = getDictionary(await resolveLanguage()).oauth.login;
+
+  const errorMessages: Record<string, string> = {
+    invalid_credentials: dict.errorInvalidCredentials,
+    locked_out: dict.errorLockedOut,
+  };
+  const errorMessage = params.error ? errorMessages[params.error] ?? dict.errorGeneric : null;
 
   return (
     <main style={PAGE_STYLE}>
-      <h1>Sign in</h1>
-      <p>Sign in as the owner to approve connections and manage connected apps.</p>
+      <h1>{dict.title}</h1>
+      <p>{dict.description}</p>
       {errorMessage && <p style={{ color: "#b00020" }}>{errorMessage}</p>}
       <form method="POST" action="/oauth/login/submit">
         <input type="hidden" name="continue" value={continueUrl} />
-        <label htmlFor="username">Username</label>
+        <label htmlFor="username">{dict.username}</label>
         <input style={INPUT_STYLE} id="username" name="username" type="text" required autoFocus />
-        <label htmlFor="password">Password</label>
+        <label htmlFor="password">{dict.password}</label>
         <input style={INPUT_STYLE} id="password" name="password" type="password" required />
-        <button type="submit">Sign in</button>
+        <button type="submit">{dict.submit}</button>
       </form>
     </main>
   );
