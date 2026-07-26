@@ -85,8 +85,8 @@ Aus der Art der Tätigkeit (Antwort 2) ableiten, was zu erstellen ist:
 | Policy `pricing`, `delivery`         | ja             | ja       | angepasst | ja       |
 
 Skills, die immer erstellt werden, für jeden Typ: `daily-plan`,
-`project-status`, `weekly-review`, `article`. Immer: `identity`,
-`communication`, `index`, `inbox`, sowie die relevanten Templates.
+`project-status`, `weekly-review`, `article`, `schedule`. Immer: `identity`,
+`communication`, `index`, `inbox`, `schedule`, sowie die relevanten Templates.
 
 ---
 
@@ -168,6 +168,14 @@ vor dem Text, echte Beispiele, Abgleich mit der Liste verbotener Wörter. Eine
 Fallstudie mit Namensnennung eines Kunden erfordert dessen Zustimmung, sonst
 anonymisieren. Keine erfundenen Daten.
 
+schedule.md — wiederkehrende Aufgaben. Liest `data/schedule.md`: für jede Zeile,
+deren nächste-ausführung ≤ heute ist, wird das ausgeführt, was in der Spalte
+Anweisungen steht (oder gemeldet, falls der Inhaber gebraucht wird), danach
+wird letzte-ausführung aktualisiert und nächste-ausführung aus dem Rhythmus neu
+berechnet. Kein automatischer Auslöser: läuft nur bei expliziter Aufforderung
+oder während `daily-plan`/`weekly-review`. Uneindeutiger Rhythmus → nachfragen,
+nie erfinden.
+
 commercial-proposal.md — [nur falls vorgesehen] liest identity+pricing+
 communication+die Kunden-/Lead-Karte. Benötigt: Problem, erwartetes Ergebnis,
 Frist, Budget; falls fehlend, nachfragen. Struktur: Problem→Vorschlag→
@@ -209,6 +217,14 @@ Lektüre jeder Aufgabe; was hier nicht steht, existiert für einen Agenten nicht
 
 Überschrift + Anweisung: schnelle Ein-Zeilen-Erfassung mit Datum, wird beim
 Weekly Review einsortiert, muss nach jedem Review wieder leer sein.
+
+### data/schedule.md
+
+Tabelle wiederkehrender Aufgaben: Name · Rhythmus (z. B. täglich, wöchentlich,
+monatlich, fester Tag im Monat) · nächste-ausführung · letzte-ausführung ·
+Anweisungen. Anfangs leer, sofern das Interview nicht bereits wiederkehrende
+Fristen ergeben hat. Oben: keine automatische Ausführung — ein verbundener
+Assistent führt sie nur auf Anfrage oder während daily-plan/weekly-review aus.
 
 ### Verzeichnisse
 

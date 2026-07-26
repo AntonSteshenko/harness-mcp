@@ -82,8 +82,8 @@ refusez. Cela aide les agents à dire non à votre place.
 | policy `pricing`, `delivery`       | oui      | oui     | adaptée  | oui   |
 
 Skills toujours créées, pour chaque type : `daily-plan`, `project-status`,
-`weekly-review`, `article`. Toujours : `identity`, `communication`, `index`,
-`inbox`, et les templates pertinents.
+`weekly-review`, `article`, `schedule`. Toujours : `identity`, `communication`,
+`index`, `inbox`, `schedule`, et les templates pertinents.
 
 ---
 
@@ -163,6 +163,14 @@ article.md — une thèse en une phrase, un lecteur défini, un plan avant le te
 des exemples réels, passage par la liste des mots interdits. Une étude de cas
 nommant un client nécessite son accord, sinon anonymiser. Aucune donnée inventée.
 
+schedule.md — tâches récurrentes. Lit `data/schedule.md` : pour chaque ligne
+dont la prochaine-exécution est ≤ aujourd'hui, fait ce que décrit la colonne
+instructions (ou le signale si le propriétaire doit intervenir), puis met à
+jour dernière-exécution et recalcule prochaine-exécution selon la fréquence.
+Aucun déclenchement automatique : ne s'exécute que sur invocation explicite, ou
+pendant `daily-plan`/`weekly-review`. Fréquence ambiguë → demander, jamais
+inventer.
+
 commercial-proposal.md — [seulement si prévue] lit identity+pricing+
 communication+la fiche client/lead. Nécessaire : problème, résultat attendu,
 échéance, budget ; si manquant, demander. Structure : problème→proposition→
@@ -203,6 +211,15 @@ lecture de chaque tâche ; ce qui n'y figure pas n'existe pas pour un agent ».
 
 En-tête + instruction : capture rapide en une ligne datée, triée lors de la
 weekly review, doit rester vide après chaque review.
+
+### data/schedule.md
+
+Tableau des tâches récurrentes : nom · fréquence (par ex. quotidienne,
+hebdomadaire, mensuelle, jour fixe du mois) · prochaine-exécution ·
+dernière-exécution · instructions. Vide au départ, sauf si l'entretien a déjà
+fait remonter des échéances récurrentes. En tête : aucune exécution
+automatique — un assistant connecté ne l'exécute que sur demande ou pendant
+daily-plan/weekly-review.
 
 ### Répertoires
 

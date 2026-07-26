@@ -84,8 +84,8 @@ A partir del tipo de actividad (respuesta 2), deduce qué crear:
 | policy `pricing`, `delivery`         | sí       | sí          | adaptada | sí    |
 
 Skills siempre creadas, para cada tipo: `daily-plan`, `project-status`,
-`weekly-review`, `article`. Siempre: `identity`, `communication`, `index`,
-`inbox`, y las plantillas pertinentes.
+`weekly-review`, `article`, `schedule`. Siempre: `identity`, `communication`,
+`index`, `inbox`, `schedule`, y las plantillas pertinentes.
 
 ---
 
@@ -166,6 +166,13 @@ texto, ejemplos reales, pasar la lista de palabras prohibidas. Un caso de
 estudio que nombre a un cliente requiere su aprobación, si no, anonimizar.
 Ningún dato inventado.
 
+schedule.md — tareas recurrentes. Lee `data/schedule.md`: para cada fila cuyo
+próxima-ejecución sea ≤ hoy, hace lo que indica la columna de instrucciones (o
+lo señala si hace falta el propietario), luego actualiza última-ejecución y
+recalcula próxima-ejecución según la cadencia. Sin disparador automático: solo
+se ejecuta al ser invocada explícitamente, o durante `daily-plan`/
+`weekly-review`. Cadencia ambigua → preguntar, nunca inventar.
+
 commercial-proposal.md — [solo si está prevista] lee identity+pricing+
 communication+la ficha del cliente/lead. Se necesita: problema, resultado
 esperado, plazo, presupuesto; si falta, preguntar. Estructura:
@@ -208,6 +215,14 @@ existe».
 
 Encabezado + instrucción: captura rápida de una línea con fecha, se clasifica
 en la weekly review, debe quedar vacío después de cada review.
+
+### data/schedule.md
+
+Tabla de tareas recurrentes: nombre · cadencia (p. ej. diaria, semanal,
+mensual, día fijo del mes) · próxima-ejecución · última-ejecución ·
+instrucciones. Vacía al principio, salvo que la entrevista ya haya recogido
+plazos recurrentes. Arriba: sin ejecución automática — un asistente conectado
+solo la ejecuta a petición o durante daily-plan/weekly-review.
 
 ### Directorios
 

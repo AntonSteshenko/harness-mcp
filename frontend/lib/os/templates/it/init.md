@@ -79,8 +79,8 @@ Dal tipo di attività (risposta 2) ricava cosa creare:
 | policy `pricing`, `delivery`   | sì       | sì         | adattata | sì    |
 
 Le skill sempre create, per ogni tipo: `daily-plan`, `project-status`,
-`weekly-review`, `article`. Sempre: `identity`, `communication`, `index`, `inbox`,
-i template pertinenti.
+`weekly-review`, `article`, `schedule`. Sempre: `identity`, `communication`,
+`index`, `inbox`, `schedule`, i template pertinenti.
 
 ---
 
@@ -151,6 +151,13 @@ article.md — una tesi in una frase, lettore definito, scaletta prima del testo
 veri, passa la lista parole vietate. Caso studio che nomina un cliente = serve la sua
 approvazione, altrimenti anonimizza. Nessun dato inventato.
 
+schedule.md — attività ricorrenti. Legge `data/schedule.md`: per ogni riga con
+prossima-esecuzione ≤ oggi, esegue quanto descritto nella colonna istruzioni (o
+lo segnala se serve l'utente), poi aggiorna ultima-esecuzione e ricalcola
+prossima-esecuzione dalla cadenza. Nessun trigger automatico: gira solo quando
+invocata esplicitamente o durante `daily-plan`/`weekly-review`. Cadenza ambigua
+→ chiedi, non inventare.
+
 commercial-proposal.md — [solo se prevista] legge identity+pricing+communication+
 scheda cliente/lead. Servono: problema, risultato atteso, scadenza, budget; se manca,
 chiedi. Struttura: problema→proposta→deliverable→fuori scope→tempi→investimento→
@@ -187,6 +194,14 @@ ciò che non è qui, per un agente non esiste".
 
 Intestazione + istruzione: cattura veloce una-riga-con-data, si smista alla weekly
 review, deve restare vuota dopo ogni review.
+
+### data/schedule.md
+
+Tabella di attività ricorrenti: nome · cadenza (es. giornaliera, settimanale,
+mensile, giorno fisso del mese) · prossima-esecuzione · ultima-esecuzione ·
+istruzioni. Vuota all'inizio, salvo che l'intervista abbia già fatto emergere
+scadenze ricorrenti. In testa: nessuna esecuzione automatica — un assistente
+collegato la esegue solo su richiesta o durante daily-plan/weekly-review.
 
 ### Directory
 

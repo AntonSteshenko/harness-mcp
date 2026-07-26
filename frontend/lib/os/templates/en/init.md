@@ -80,8 +80,8 @@ From the type of activity (answer 2), derive what to create:
 | policy `pricing`, `delivery`    | yes           | yes        | adapted  | yes   |
 
 Skills always created, for every type: `daily-plan`, `project-status`,
-`weekly-review`, `article`. Always: `identity`, `communication`, `index`, `inbox`,
-and the relevant templates.
+`weekly-review`, `article`, `schedule`. Always: `identity`, `communication`,
+`index`, `inbox`, `schedule`, and the relevant templates.
 
 ---
 
@@ -155,6 +155,12 @@ article.md — one thesis in one sentence, a defined reader, an outline before t
 text, real examples, run through the forbidden-words list. A case study naming a
 client requires their approval, otherwise anonymize. No invented data.
 
+schedule.md — recurring tasks. Reads `data/schedule.md`: for every row whose
+next-run is ≤ today, does what the instructions column says (or flags it if it
+needs the owner), then updates last-run and recomputes next-run from the
+cadence. No automatic trigger: it only runs when explicitly invoked, or during
+`daily-plan`/`weekly-review`. Ambiguous cadence → ask, never invent.
+
 commercial-proposal.md — [only if planned] reads identity+pricing+communication+
 the client/lead record. Needed: problem, expected outcome, deadline, budget; if
 missing, ask. Structure: problem→proposal→deliverables→out of scope→timeline→
@@ -192,6 +198,14 @@ every task; whatever isn't here doesn't exist for an agent."
 
 Header + instruction: quick one-line-with-date capture, gets sorted during the
 weekly review, must be empty again after every review.
+
+### data/schedule.md
+
+Table of recurring tasks: name · cadence (e.g. daily, weekly, monthly, fixed
+day of month) · next-run · last-run · instructions. Empty at the start unless
+the interview already surfaced recurring deadlines. At the top: no automatic
+execution — a connected assistant runs it only on request or during
+daily-plan/weekly-review.
 
 ### Directories
 
