@@ -19,7 +19,7 @@ The pair of top-level directory markers whose joint presence/absence drives `/in
 
 ## Agents entry point (`AGENTS.md`, bucket root)
 
-Fixed content (research.md §5) — no input of any kind, since there is no form anymore. States that any connecting AI assistant should read `os/skills/init.md` for guidance on operating the system (FR-008).
+Fixed content (research.md §5) — no input of any kind, since there is no form anymore. States that any connecting AI assistant should read `os/skills/init.md` for guidance on operating the system (FR-008). This is fixed only as *this app* writes it: `os/skills/init.md`'s own Phase 3 instructions (outside this feature's scope) have the connected assistant overwrite this same file in place once its interview completes, turning it into the real operating router (routing table, writing rules) while always keeping one line back to `os/skills/init.md` for repair/extend/start-over. There is exactly one `AGENTS.md` for the OS's whole lifecycle — no separate router file is ever created under `os/`.
 
 ## Init skill (`os/skills/init.md`)
 
