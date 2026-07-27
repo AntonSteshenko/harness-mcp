@@ -1,6 +1,6 @@
 import { createMcpHandler, withMcpAuth } from "mcp-handler";
 import { registerTools } from "@/lib/mcp-tools";
-import { registerResources } from "@/lib/mcp-tools/resources";
+import { registerEngineTools } from "@/lib/mcp-tools/engineTools";
 import { verifyPersonalAccessToken } from "@/lib/oauth/personalAccessTokens";
 import { verifyAccessToken } from "@/lib/oauth/tokens";
 
@@ -10,13 +10,13 @@ import { verifyAccessToken } from "@/lib/oauth/tokens";
 const serverInfo = {
   name: "harness-mcp-s3",
   version: "0.1.0",
-  description: "read assistant/AGENTS.md; engine/os-upgrade/init resources (spec 016)",
+  description: "read assistant/AGENTS.md; call get_os_engine/get_os_upgrade/get_os_init to set up or repair it (spec 016)",
 };
 
 const handler = createMcpHandler(
   async (server) => {
     await registerTools(server);
-    await registerResources(server);
+    await registerEngineTools(server);
   },
   {
     serverInfo,

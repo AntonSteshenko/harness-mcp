@@ -1,6 +1,6 @@
 ---
 type: engine
-resource: init
+tool: get_os_init
 ---
 
 # Init — business setup
@@ -9,13 +9,21 @@ Self-contained instructions for standing up (or continuing) the business side
 of a Company OS: `data/`, `os/identity.md`, `os/policies/*`, domain skills,
 `os/templates/*`, and `os/routing.md`. Never touches `AGENTS.md` itself
 building/repairing it, its `os-engine-version`, or the engine's write-rules —
-that's the `engine`/`os-upgrade` resources' job (spec 016).
+that's the `get_os_engine`/`get_os_upgrade` tools' job (spec 016).
 
 ## When to use it
 
 Trigger words: "init", "initialize", "setup os", "create the structure" — the
 human-facing phrases an owner actually says. It also **self-triggers**: see
 **Self-trigger** below.
+
+**Before anything else, on every call**: `read_file "AGENTS.md"`. If it has no
+`os-engine-version` in its front matter (the `/init`-written stub, or a
+pre-spec-016 file), call the `get_os_engine` tool first and follow its Build
+or Repair instructions — `AGENTS.md` must end up with a valid
+`os-engine-version` at the same time as, or before, anything in this file
+gets written. Never leave the owner with a fully set-up `data/` but a still-stub
+`AGENTS.md`.
 
 ---
 
@@ -45,10 +53,11 @@ Before writing anything:
    - **extend** — add a new line of business (e.g. a product line for someone
      who only had project work before)
    - **start over** — overwrites `data/` and everything business-specific this
-     resource owns. Proceed **only** with explicit confirmation that the owner
+     tool owns. Proceed **only** with explicit confirmation that the owner
      understands they will lose the current content.
 3. Never touch `AGENTS.md` here — if it needs building or repairing, that's a
-   separate step handled by the `engine` resource, before or after this one.
+   separate step handled by the `get_os_engine` tool, before or after this one
+   (see "Before anything else, on every call" above).
 
 ---
 
@@ -242,7 +251,7 @@ Create only the ones called for: `data/clients/` `data/projects/`
 Close out in chat, in `os/language`, not with more writes:
 
 - **Created** — the essential tree of `data/` and everything under `os/` this
-  resource owns.
+  tool owns.
 - **Still to fill in** — the files left with placeholders (typically pricing's
   numeric fields and personal/company details). Only the ones the owner hasn't
   already covered.
@@ -260,10 +269,10 @@ Close out in chat, in `os/language`, not with more writes:
 - Create only what the type calls for: a pure consultant shouldn't end up with
   an empty `data/products/`, a pure product business shouldn't end up with the
   proposal skill.
-- This resource is the source of truth for business structure. To change the
+- This tool is the source of truth for business structure. To change the
   skeleton, this file changes (a code change, reviewed like any other) — an
   assistant never hand-patches file by file to "fix" the shape it produces.
 - **Fixed names**: every folder/file created always uses the fixed English
-  name given in this resource (e.g. `daily-plan.md`, never a translated name)
+  name given in this tool (e.g. `daily-plan.md`, never a translated name)
   — regardless of the language confirmed for the Company OS. Only the content
   of the files is in the chosen language.

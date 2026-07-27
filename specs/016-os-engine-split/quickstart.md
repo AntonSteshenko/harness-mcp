@@ -1,6 +1,6 @@
 # Quickstart: Validating the OS Engine Split
 
-**Input**: [spec.md](spec.md), [contracts/mcp-resources.md](contracts/mcp-resources.md), [contracts/init-skeleton.md](contracts/init-skeleton.md)
+**Input**: [spec.md](spec.md), [contracts/mcp-engine-tools.md](contracts/mcp-engine-tools.md), [contracts/init-skeleton.md](contracts/init-skeleton.md)
 
 No automated test suite in this project (consistent with specs 001-015) — validated by manual walkthrough, same as `014-os-init-page`/`015-multilingual-support`'s own quickstarts. Requires local MinIO (spec 001) and an MCP-connected assistant (e.g. this app's `/init` → MCP connect flow, spec 008/013).
 
@@ -9,8 +9,8 @@ No automated test suite in this project (consistent with specs 001-015) — vali
 1. Point the app at an empty bucket. Visit `/init`, confirm a language, submit.
 2. `AGENTS.md` should now exist as the **stub** described in `contracts/init-skeleton.md` — no `os-engine-version` front matter, no `os/skills/init.md` anywhere in the bucket.
 3. Connect an assistant over MCP. Ask it to "initialize the Company OS."
-4. Expect: the assistant reaches for the `init` resource, runs the interview, then the `engine` resource to build `AGENTS.md` for real. Confirm afterward: `AGENTS.md` now has `os-engine-version: <current>` in its front matter, points to `os/routing.md` (no inline routing table), and `os/routing.md`/`data/*`/`os/identity.md`/applicable policies and domain skills all exist per the interview's answers.
-5. Confirm `resources/list` on the MCP connection shows `engine`, `os-upgrade`, `init` — and confirm none of the three are reachable via `list_directory`/`read_file` (SC-003).
+4. Expect: the assistant calls the `get_os_init` tool, runs the interview, then calls `get_os_engine` to build `AGENTS.md` for real. Confirm afterward: `AGENTS.md` now has `os-engine-version: <current>` in its front matter, points to `os/routing.md` (no inline routing table), and `os/routing.md`/`data/*`/`os/identity.md`/applicable policies and domain skills all exist per the interview's answers.
+5. Confirm `tools/list` on the MCP connection shows `get_os_engine`, `get_os_upgrade`, `get_os_init` alongside the file tools, and that the assistant can and does call them directly — and confirm none of the three are reachable as bucket paths via `list_directory`/`read_file` (SC-003).
 
 ## Scenario B — Upgrade check, nothing new (Story 2, Scenario 4)
 

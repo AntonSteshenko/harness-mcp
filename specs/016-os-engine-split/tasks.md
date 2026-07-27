@@ -7,9 +7,11 @@ description: "Task list template for feature implementation"
 
 **Input**: Design documents from `/specs/016-os-engine-split/`
 
-**Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/mcp-resources.md, contracts/init-skeleton.md, quickstart.md
+**Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/mcp-engine-tools.md, contracts/init-skeleton.md, quickstart.md
 
 **Tests**: No automated test suite in this project (specs 001-015, plan.md Testing) — validation tasks below run `quickstart.md`'s manual scenarios instead of writing test code.
+
+> **Post-launch correction (Phase 8)**: Phases 1-7 below were executed as originally planned, using MCP **resources** (`server.registerResource`, `frontend/lib/mcp-tools/resources.ts`, `contracts/mcp-resources.md`). Live testing after deployment showed a connected assistant has no reliable visibility into MCP resources — see research.md §1. **Phase 8 supersedes every "resource" reference below** with the corrected, tool-based implementation (`get_os_engine`/`get_os_upgrade`/`get_os_init`, `frontend/lib/mcp-tools/engineTools.ts`, `contracts/mcp-engine-tools.md`). Phases 1-7's task descriptions are left as-is below as the historical record of what was originally built; they are accurate about *intent and content authored*, not about the current file names/registration mechanism.
 
 **Organization**: Tasks are grouped by user story (spec.md) to enable independent implementation and testing of each story.
 
@@ -135,8 +137,25 @@ Single Next.js app (`frontend/`), per plan.md's Project Structure — no `backen
 **Purpose**: Final sign-off across all stories together.
 
 - [ ] T024 [P] Run the complete `quickstart.md` walkthrough (Scenarios A-G) end-to-end in one continuous session against a single Company OS, confirming no scenario regresses another
-- [X] T025 [P] Confirm `engine`, `os-upgrade`, and `init` are listed via the MCP connection's `resources/list` but are never reachable via `list_directory`/`read_file` against a live bucket (SC-003) — verified statically: `frontend/lib/os/engine/*.md` is read only by `resources.ts`'s `readFileSync`, never passed to `createFile`/`updateFile` anywhere in the codebase (grep confirmed); live `resources/list` vs. bucket-listing behavior follows from the MCP resource primitive itself. **Not confirmed against a running server** — no live MCP session in this environment.
-- [X] T026 Review `frontend/app/mcp/route.ts`'s `serverInfo.description` ("read assistant/AGENTS.md") for continued accuracy now that resources exist alongside tools; update if it undersells or misdescribes the new surface — updated to mention the engine/os-upgrade/init resources (T005)
+- [X] T025 [P] Confirm `engine`, `os-upgrade`, and `init` are listed via the MCP connection's `resources/list` but are never reachable via `list_directory`/`read_file` against a live bucket (SC-003) — verified statically: `frontend/lib/os/engine/*.md` is read only by `resources.ts`'s `readFileSync`, never passed to `createFile`/`updateFile` anywhere in the codebase (grep confirmed); live `resources/list` vs. bucket-listing behavior follows from the MCP resource primitive itself. **This static verification held, but the underlying design didn't — see Phase 8: a live session showed the assistant never even looked at `resources/list`.**
+- [X] T026 Review `frontend/app/mcp/route.ts`'s `serverInfo.description` ("read assistant/AGENTS.md") for continued accuracy now that resources exist alongside tools; update if it undersells or misdescribes the new surface — updated to mention the engine/os-upgrade/init resources (T005) — **wording superseded by Phase 8's T028**
+
+---
+
+## Phase 8: Post-launch correction — MCP resources → MCP tools
+
+**Purpose**: The first live session through a real connected assistant (after Phases 1-7 shipped) showed the assistant successfully calling `list_directory`/`read_file` but never discovering the `engine`/`os-upgrade`/`init` resources at all — it guessed an unrelated, separately-connected MCP server might be the "engine" `AGENTS.md`'s stub vaguely pointed at. Diagnosis and full rationale: research.md §1. This phase replaces the resource-based mechanism with MCP tools, which the same assistant already used successfully.
+
+**Independent Test**: Connect an assistant to a Company OS whose `AGENTS.md` is the `/init`-written stub, ask it to initialize the Company OS, and confirm it calls `get_os_init` directly (visible in the same tool-call flow as its `list_directory`/`read_file` calls) rather than asking what an "engine" might be.
+
+- [X] T027 Delete `frontend/lib/mcp-tools/resources.ts`; create `frontend/lib/mcp-tools/engineTools.ts` implementing `registerEngineTools(server)` — three zero-argument tools (`get_os_engine`, `get_os_upgrade`, `get_os_init`) via `server.registerTool()`, each returning its Markdown file's content as a plain-text content block (not JSON-wrapped via `ok()`), per `contracts/mcp-engine-tools.md`
+- [X] T028 Wire `registerEngineTools(server)` into `frontend/app/mcp/route.ts` in place of `registerResources(server)`; update `serverInfo.description` to name the three tools directly
+- [X] T029 [P] Replace every "resource" reference in `frontend/lib/os/engine/{engine,os-upgrade,init}.md` with the concrete tool name it's calling (`get_os_engine`/`get_os_upgrade`/`get_os_init`) — including front matter (`resource: X` → `tool: get_os_X`) — and add an explicit call-out in `init.md`'s Rule Zero: call `get_os_engine` first if `AGENTS.md` doesn't yet carry a valid `os-engine-version`, so a fresh Company OS never ends up with a fully set-up `data/` but a still-stub `AGENTS.md`
+- [X] T030 [P] Reword the stub in all six `frontend/lib/os/templates/<lang>/AGENTS.md` files to name the `get_os_init` tool explicitly (e.g. "call the `get_os_init` MCP tool") instead of the vague "through its own MCP connection" — the concreteness live testing showed was missing
+- [X] T031 Update `specs/016-os-engine-split/{research,data-model,plan}.md` and rename `contracts/mcp-resources.md` → `contracts/mcp-engine-tools.md` to describe the tool-based mechanism, keeping the original resource-based decision visible as a documented, reverted alternative (not silently erased)
+- [ ] T032 Run `quickstart.md` Scenario A again against a live MCP session and confirm the assistant now calls `get_os_init`/`get_os_engine` directly, with no confusion about an unrelated connector — **not run in this environment, same live-session limitation as T014/T016/T019/T023/T024**
+
+**Checkpoint**: The engine/upgrade/business-setup content is reachable the same way the assistant already reliably calls `list_directory`/`read_file` — via `tools/list`+`tools/call`, not `resources/list`+`resources/read`.
 
 ---
 
@@ -218,7 +237,7 @@ Task: "Author the interview/decision-table section of frontend/lib/os/engine/ini
 
 ## Notes
 
-- **T014, T016, T019, T023, T024 (all `quickstart.md` scenario walkthroughs) remain unchecked** — they require a live MinIO instance and a connected MCP assistant session, neither of which exists in the implementing environment. Every implementation task they depend on is done and statically verified (`tsc --noEmit` clean); these five need a human (or an agent with a live browser/MCP session) to actually run `quickstart.md` Scenarios A-G before this feature ships.
+- **T014, T016, T019, T023, T024, T032 (all `quickstart.md` scenario walkthroughs) remain unchecked** — they require a live MinIO instance and a connected MCP assistant session, neither of which exists in the implementing environment. Every implementation task they depend on is done and statically verified (`tsc --noEmit` clean); these six need a human (or an agent with a live browser/MCP session) to actually run `quickstart.md` Scenarios A-G before this feature ships. T032 is the most important of the six to actually run — it's the one that would have caught Phase 1-7's resource-discoverability problem in the first place.
 - No test-code tasks: this project has no automated test suite (plan.md Testing); every story's "test" is a `quickstart.md` scenario run by hand
 - [P] tasks touch different files with no unmet dependency
 - [Story] label maps each task to its spec.md user story for traceability

@@ -1,5 +1,5 @@
 # Agents
 
 This bucket hosts a Company OS. Ask your connected assistant to set it up —
-it reaches the Company OS engine through its own MCP connection, not through
-a file in this bucket.
+it should call the `get_os_init` MCP tool (not read a file in this bucket)
+to get started.
