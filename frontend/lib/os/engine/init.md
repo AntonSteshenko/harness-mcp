@@ -9,7 +9,7 @@ Self-contained instructions for standing up (or continuing) the business side
 of a Company OS: `data/`, `os/identity.md`, `os/policies/*`, domain skills,
 `os/templates/*`, and `os/routing.md`. Never touches `AGENTS.md` itself
 building/repairing it, its `os-engine-version`, or the engine's write-rules —
-that's the `get_os_engine`/`get_os_upgrade` tools' job (spec 016).
+call the `get_os_engine`/`get_os_upgrade` tools for that.
 
 ## When to use it
 
@@ -18,8 +18,8 @@ human-facing phrases an owner actually says. It also **self-triggers**: see
 **Self-trigger** below.
 
 **Before anything else, on every call**: `read_file "AGENTS.md"`. If it has no
-`os-engine-version` in its front matter (the `/init`-written stub, or a
-pre-spec-016 file), call the `get_os_engine` tool first and follow its Build
+`os-engine-version` in its front matter (the `/init`-written stub, or an older
+file predating this field), call the `get_os_engine` tool first and follow its Build
 or Repair instructions — `AGENTS.md` must end up with a valid
 `os-engine-version` at the same time as, or before, anything in this file
 gets written. Never leave the owner with a fully set-up `data/` but a still-stub

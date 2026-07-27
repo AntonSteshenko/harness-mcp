@@ -9,7 +9,7 @@ os-engine-version: 1
 Self-contained instructions for the only thing the `get_os_engine` tool is
 responsible for: `AGENTS.md`, the Company OS's single router file. It never
 touches `data/`, `os/identity.md`, `os/policies/*`, domain skills, or
-`os/routing.md` — that's the `get_os_init` tool's job (spec 016). Call
+`os/routing.md` — call the `get_os_init` tool for that. Call
 `get_os_engine` whenever `AGENTS.md` needs to be created or repaired,
 including the first time you connect to a Company OS whose `AGENTS.md` is
 still the `/init`-written stub.
@@ -31,8 +31,8 @@ Before writing `AGENTS.md` at all:
      upgrade share one confirm-before-change gate — never rebuild silently).
    - **No `os-engine-version` field at all** → treat this as version `0`, the
      oldest possible state, not an error. If `AGENTS.md`'s body already contains
-     a routing table (pre-spec-016 shape), follow **Pre-existing (v0) instances**
-     below before doing anything else.
+     an inline routing table (the older, pre-versioning shape), follow
+     **Pre-existing (v0) instances** below before doing anything else.
 3. Never touch `data/`, `os/identity.md`, `os/policies/*`, or any domain skill
    file here — those belong to the `get_os_init` tool, not this one.
 
@@ -48,7 +48,7 @@ Before writing `AGENTS.md` at all:
    - State that this bucket hosts a Company OS.
    - Point to `os/routing.md` for "which skill handles what" — **do not** embed
      a routing table inline. `os/routing.md` doesn't exist yet on a truly fresh
-     build; that's fine, it's the `get_os_init` tool's job to create it, and
+     build; that's fine, call the `get_os_init` tool to create it, and
      `AGENTS.md`'s pointer is correct either way.
    - State the writing rules every skill must follow: `update_file` overwrites
      — always read first; every file's front matter carries `updated:` in
@@ -91,8 +91,8 @@ An `AGENTS.md` with no `os-engine-version` front matter predates this engine
 entirely. Before rebuilding it:
 
 1. Read its current body in full. Find its routing table (a Markdown table
-   naming which skill handles which kind of task — the shape a pre-spec-016
-   `AGENTS.md` embeds inline).
+   naming which skill handles which kind of task — the shape an older
+   `AGENTS.md` embeds inline, before `os/routing.md` existed).
 2. If `os/routing.md` doesn't already exist, create it from every row of that
    table, preserving all of them — this is a copy, not a reformat. If
    `os/routing.md` already exists (partial migration from an earlier attempt),
