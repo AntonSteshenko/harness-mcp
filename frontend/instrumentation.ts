@@ -26,5 +26,21 @@ export async function register() {
     } catch (err) {
       console.error(`\nWarning: OAuth owner credential is misconfigured — sign-in will fail until it's set.\n${(err as Error).message}\n`);
     }
+
+    // spec 017-mcp-email-telegram-tools: same relaxed pattern — send_email
+    // and send_telegram_message simply return a missing_config error on
+    // first use until each channel's env vars are set.
+    const { readMessagingConfig, validateEmailConfig, validateTelegramConfig } = await import("./lib/messaging/config");
+    const messagingConfig = readMessagingConfig();
+    try {
+      validateEmailConfig(messagingConfig);
+    } catch (err) {
+      console.error(`\nWarning: SMTP is misconfigured — send_email will fail until it's set.\n${(err as Error).message}\n`);
+    }
+    try {
+      validateTelegramConfig(messagingConfig);
+    } catch (err) {
+      console.error(`\nWarning: Telegram bot token is misconfigured — send_telegram_message will fail until it's set.\n${(err as Error).message}\n`);
+    }
   }
 }

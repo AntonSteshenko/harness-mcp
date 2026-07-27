@@ -1,6 +1,7 @@
 import { createMcpHandler, withMcpAuth } from "mcp-handler";
 import { registerTools } from "@/lib/mcp-tools";
 import { registerEngineTools } from "@/lib/mcp-tools/engineTools";
+import { registerMessagingTools } from "@/lib/mcp-tools/messagingTools";
 import { verifyPersonalAccessToken } from "@/lib/oauth/personalAccessTokens";
 import { verifyAccessToken } from "@/lib/oauth/tokens";
 
@@ -17,6 +18,7 @@ const handler = createMcpHandler(
   async (server) => {
     await registerTools(server);
     await registerEngineTools(server);
+    await registerMessagingTools(server);
   },
   {
     serverInfo,

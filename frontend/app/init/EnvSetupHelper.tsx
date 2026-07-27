@@ -29,6 +29,16 @@ interface Fields {
   ownerUsername: string;
   ownerPassword: string;
   osName: string;
+  smtpHost: string;
+  smtpPort: string;
+  smtpSecure: boolean;
+  smtpUser: string;
+  smtpPassword: string;
+  smtpFrom: string;
+  telegramBotToken: string;
+  telegramChatId: string;
+  rateLimitMax: string;
+  rateLimitWindowMinutes: string;
 }
 
 function buildDotEnvSnippet(fields: Fields): string {
@@ -43,6 +53,31 @@ function buildDotEnvSnippet(fields: Fields): string {
     `OAUTH_OWNER_PASSWORD=${fields.ownerPassword}`,
   ];
   if (fields.osName) lines.push(`OS_NAME=${fields.osName}`);
+
+  // Messaging (spec 017) is entirely optional — only emitted once the owner
+  // has actually started filling in a channel, so a skipped section doesn't
+  // clutter the snippet with empty SMTP_*/TELEGRAM_* lines.
+  if (fields.smtpHost) {
+    lines.push(
+      `SMTP_HOST=${fields.smtpHost}`,
+      `SMTP_PORT=${fields.smtpPort}`,
+      `SMTP_SECURE=${fields.smtpSecure}`,
+      `SMTP_USER=${fields.smtpUser}`,
+      `SMTP_PASSWORD=${fields.smtpPassword}`,
+      `SMTP_FROM=${fields.smtpFrom}`,
+    );
+  }
+  if (fields.telegramBotToken) {
+    lines.push(`TELEGRAM_BOT_TOKEN=${fields.telegramBotToken}`);
+    if (fields.telegramChatId) lines.push(`TELEGRAM_CHAT_ID=${fields.telegramChatId}`);
+  }
+  if (fields.smtpHost || fields.telegramBotToken) {
+    lines.push(
+      `MESSAGING_RATE_LIMIT_MAX=${fields.rateLimitMax}`,
+      `MESSAGING_RATE_LIMIT_WINDOW_MINUTES=${fields.rateLimitWindowMinutes}`,
+    );
+  }
+
   return lines.join("\n");
 }
 
@@ -90,6 +125,16 @@ export function EnvSetupHelper({ language }: { language: SupportedLanguage }) {
     ownerUsername: "",
     ownerPassword: "",
     osName: "",
+    smtpHost: "",
+    smtpPort: "587",
+    smtpSecure: false,
+    smtpUser: "",
+    smtpPassword: "",
+    smtpFrom: "",
+    telegramBotToken: "",
+    telegramChatId: "",
+    rateLimitMax: "20",
+    rateLimitWindowMinutes: "60",
   });
 
   const snippet = useMemo(() => buildDotEnvSnippet(fields), [fields]);
@@ -191,6 +236,107 @@ export function EnvSetupHelper({ language }: { language: SupportedLanguage }) {
         placeholder="harness-mcp"
         value={fields.osName}
         onChange={(e) => update("osName", e.target.value)}
+      />
+
+      <h2>{dict.messagingHeading}</h2>
+      <p>{dict.messagingDescription}</p>
+
+      <h3>{dict.smtpSubheading}</h3>
+
+      <label htmlFor="smtpHost">{dict.smtpHost}</label>
+      <input
+        style={INPUT_STYLE}
+        id="smtpHost"
+        type="text"
+        value={fields.smtpHost}
+        onChange={(e) => update("smtpHost", e.target.value)}
+      />
+
+      <label htmlFor="smtpPort">{dict.smtpPort}</label>
+      <input
+        style={INPUT_STYLE}
+        id="smtpPort"
+        type="text"
+        value={fields.smtpPort}
+        onChange={(e) => update("smtpPort", e.target.value)}
+      />
+
+      <label>
+        <input
+          type="checkbox"
+          checked={fields.smtpSecure}
+          onChange={(e) => update("smtpSecure", e.target.checked)}
+        />{" "}
+        {dict.smtpSecureLabel}
+      </label>
+
+      <label htmlFor="smtpUser">{dict.smtpUser}</label>
+      <input
+        style={INPUT_STYLE}
+        id="smtpUser"
+        type="text"
+        value={fields.smtpUser}
+        onChange={(e) => update("smtpUser", e.target.value)}
+      />
+
+      <label htmlFor="smtpPassword">{dict.smtpPassword}</label>
+      <input
+        style={INPUT_STYLE}
+        id="smtpPassword"
+        type="password"
+        value={fields.smtpPassword}
+        onChange={(e) => update("smtpPassword", e.target.value)}
+      />
+
+      <label htmlFor="smtpFrom">{dict.smtpFrom}</label>
+      <input
+        style={INPUT_STYLE}
+        id="smtpFrom"
+        type="text"
+        placeholder="Risorse OS <noreply@example.com>"
+        value={fields.smtpFrom}
+        onChange={(e) => update("smtpFrom", e.target.value)}
+      />
+
+      <h3>{dict.telegramSubheading}</h3>
+
+      <label htmlFor="telegramBotToken">{dict.telegramBotToken}</label>
+      <input
+        style={INPUT_STYLE}
+        id="telegramBotToken"
+        type="password"
+        value={fields.telegramBotToken}
+        onChange={(e) => update("telegramBotToken", e.target.value)}
+      />
+
+      <label htmlFor="telegramChatId">{dict.telegramChatId}</label>
+      <input
+        style={INPUT_STYLE}
+        id="telegramChatId"
+        type="text"
+        placeholder="123456789"
+        value={fields.telegramChatId}
+        onChange={(e) => update("telegramChatId", e.target.value)}
+      />
+
+      <h3>{dict.rateLimitSubheading}</h3>
+
+      <label htmlFor="rateLimitMax">{dict.rateLimitMax}</label>
+      <input
+        style={INPUT_STYLE}
+        id="rateLimitMax"
+        type="text"
+        value={fields.rateLimitMax}
+        onChange={(e) => update("rateLimitMax", e.target.value)}
+      />
+
+      <label htmlFor="rateLimitWindowMinutes">{dict.rateLimitWindowMinutes}</label>
+      <input
+        style={INPUT_STYLE}
+        id="rateLimitWindowMinutes"
+        type="text"
+        value={fields.rateLimitWindowMinutes}
+        onChange={(e) => update("rateLimitWindowMinutes", e.target.value)}
       />
 
       <h2>{dict.configHeading}</h2>
