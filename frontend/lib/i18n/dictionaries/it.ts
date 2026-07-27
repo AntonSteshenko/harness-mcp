@@ -4,7 +4,7 @@ export const it: Dictionary = {
   init: {
     setupTitle: "Configura il tuo Company OS",
     setupDescription:
-      "Questo crea la struttura iniziale — os/, data/, AGENTS.md e os/skills/init.md. Qui non viene chiesto nulla: una volta connesso, il tuo assistente AI legge os/skills/init.md e ti intervista per il resto.",
+      "Questo crea la struttura iniziale — os/, data/ e AGENTS.md. Qui non viene chiesto nulla: una volta connesso, il tuo assistente AI configura il resto tramite la propria connessione MCP e ti intervista per i dettagli.",
     languagePrompt:
       "Scegli qui sotto la lingua per il tuo Company OS — questa scelta è permanente per questo Company OS una volta confermata.",
     submit: "Inizializza Company OS",
@@ -15,10 +15,10 @@ export const it: Dictionary = {
       readyTitle: "Il tuo Company OS è pronto",
       connectTitle: "Connetti Claude o ChatGPT",
       justCreatedText:
-        "La struttura iniziale (os/, data/, AGENTS.md, os/skills/init.md) è stata creata. Connetti un assistente AI qui sotto, poi chiedigli di leggere os/skills/init.md — ti intervisterà e configurerà il resto.",
+        "La struttura iniziale (os/, data/, AGENTS.md) è stata creata. Connetti un assistente AI qui sotto, poi chiedigli di inizializzare il Company OS — raggiungerà il processo di setup tramite la propria connessione MCP, ti intervisterà e configurerà il resto.",
       step1: "Nel flusso \"aggiungi connettore\"/\"aggiungi server MCP\" di Claude o ChatGPT, inserisci:",
       step2: "L'assistente scopre automaticamente il flusso OAuth — accedi con la tua credenziale da proprietario quando richiesto, poi approva la connessione.",
-      step3: "Una volta connesso, chiedi all'assistente di leggere os/skills/init.md per iniziare.",
+      step3: "Una volta connesso, chiedi all'assistente di inizializzare il Company OS per iniziare.",
       reviewText: "Rivedi o revoca gli assistenti connessi in /settings/connected-apps. Per script/strumenti CLI invece di un assistente ospitato, usa un personal access token invece di OAuth.",
       goToEditor: "Vai a /editor",
     },

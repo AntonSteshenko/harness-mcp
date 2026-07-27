@@ -4,7 +4,7 @@ export const de: Dictionary = {
   init: {
     setupTitle: "Richten Sie Ihr Company OS ein",
     setupDescription:
-      "Dies erstellt die Ausgangsstruktur — os/, data/, AGENTS.md und os/skills/init.md. Hier wird nichts abgefragt; sobald verbunden, liest Ihr KI-Assistent os/skills/init.md und befragt Sie zum Rest.",
+      "Dies erstellt die Ausgangsstruktur — os/, data/ und AGENTS.md. Hier wird nichts abgefragt; sobald verbunden, richtet Ihr KI-Assistent den Rest über seine eigene MCP-Verbindung ein und befragt Sie zu den Details.",
     languagePrompt:
       "Wählen Sie unten die Sprache für Ihr Company OS — diese Wahl ist nach der Bestätigung dauerhaft für dieses Company OS.",
     submit: "Company OS initialisieren",
@@ -15,10 +15,10 @@ export const de: Dictionary = {
       readyTitle: "Ihr Company OS ist bereit",
       connectTitle: "Claude oder ChatGPT verbinden",
       justCreatedText:
-        "Die Ausgangsstruktur (os/, data/, AGENTS.md, os/skills/init.md) wurde erstellt. Verbinden Sie unten einen KI-Assistenten und bitten Sie ihn dann, os/skills/init.md zu lesen — er wird Sie befragen und den Rest einrichten.",
+        "Die Ausgangsstruktur (os/, data/, AGENTS.md) wurde erstellt. Verbinden Sie unten einen KI-Assistenten und bitten Sie ihn dann, das Company OS zu initialisieren — er erreicht den Einrichtungsprozess über seine eigene MCP-Verbindung, befragt Sie und richtet den Rest ein.",
       step1: 'Geben Sie im Ablauf „Connector hinzufügen“/„MCP-Server hinzufügen“ von Claude oder ChatGPT Folgendes ein:',
       step2: "Der Assistent erkennt den OAuth-Ablauf automatisch — melden Sie sich bei Aufforderung mit Ihrer Inhaber-Anmeldeinformation an und genehmigen Sie dann die Verbindung.",
-      step3: "Bitten Sie den Assistenten nach der Verbindung, os/skills/init.md zu lesen, um zu beginnen.",
+      step3: "Bitten Sie den Assistenten nach der Verbindung, das Company OS zu initialisieren, um zu beginnen.",
       reviewText: "Verbundene Assistenten unter /settings/connected-apps überprüfen oder widerrufen. Für Skripte/CLI-Tools statt eines gehosteten Assistenten verwenden Sie einen Personal Access Token anstelle von OAuth.",
       goToEditor: "Zu /editor",
     },

@@ -5,7 +5,7 @@ export const en: Dictionary = {
   init: {
     setupTitle: "Set up your Company OS",
     setupDescription:
-      "This creates the starting structure — os/, data/, AGENTS.md, and os/skills/init.md. No details are asked here; once connected, your AI assistant reads os/skills/init.md and interviews you for the rest.",
+      "This creates the starting structure — os/, data/, and AGENTS.md. No details are asked here; once connected, your AI assistant builds the rest through its own MCP connection and interviews you for the details.",
     languagePrompt:
       "Pick the language for your Company OS below — this choice is permanent for this Company OS once confirmed.",
     submit: "Initialize Company OS",
@@ -16,10 +16,10 @@ export const en: Dictionary = {
       readyTitle: "Your Company OS is ready",
       connectTitle: "Connect Claude or ChatGPT",
       justCreatedText:
-        "The starting structure (os/, data/, AGENTS.md, os/skills/init.md) has been created. Connect an AI assistant below, then ask it to read os/skills/init.md — it will interview you and set up the rest.",
+        "The starting structure (os/, data/, AGENTS.md) has been created. Connect an AI assistant below, then ask it to initialize the Company OS — it reaches the setup process through its own MCP connection and will interview you and set up the rest.",
       step1: "In Claude or ChatGPT's \"add connector\"/\"add MCP server\" flow, enter:",
       step2: "The assistant discovers the OAuth flow automatically — sign in with your owner credential when prompted, then approve the connection.",
-      step3: "Once connected, ask the assistant to read os/skills/init.md to get started.",
+      step3: "Once connected, ask the assistant to initialize the Company OS to get started.",
       reviewText: "Review or revoke connected assistants at /settings/connected-apps. For scripts/CLI tools instead of a hosted assistant, use a personal access token instead of OAuth.",
       goToEditor: "Go to /editor",
     },

@@ -4,7 +4,7 @@ export const es: Dictionary = {
   init: {
     setupTitle: "Configura tu Company OS",
     setupDescription:
-      "Esto crea la estructura inicial — os/, data/, AGENTS.md y os/skills/init.md. Aquí no se pregunta nada: una vez conectado, tu asistente de IA lee os/skills/init.md y te entrevista para el resto.",
+      "Esto crea la estructura inicial — os/, data/ y AGENTS.md. Aquí no se pregunta nada: una vez conectado, tu asistente de IA configura el resto a través de su propia conexión MCP y te entrevista para los detalles.",
     languagePrompt:
       "Elige aquí abajo el idioma de tu Company OS — esta elección es permanente para este Company OS una vez confirmada.",
     submit: "Inicializar Company OS",
@@ -15,10 +15,10 @@ export const es: Dictionary = {
       readyTitle: "Tu Company OS está listo",
       connectTitle: "Conectar Claude o ChatGPT",
       justCreatedText:
-        "La estructura inicial (os/, data/, AGENTS.md, os/skills/init.md) se ha creado. Conecta un asistente de IA abajo y luego pídele que lea os/skills/init.md — te entrevistará y configurará el resto.",
+        "La estructura inicial (os/, data/, AGENTS.md) se ha creado. Conecta un asistente de IA abajo y luego pídele que inicialice el Company OS — accederá al proceso de configuración a través de su propia conexión MCP, te entrevistará y configurará el resto.",
       step1: "En el flujo «añadir conector»/«añadir servidor MCP» de Claude o ChatGPT, introduce:",
       step2: "El asistente descubre automáticamente el flujo OAuth — inicia sesión con tu credencial de propietario cuando se te pida, y luego aprueba la conexión.",
-      step3: "Una vez conectado, pide al asistente que lea os/skills/init.md para empezar.",
+      step3: "Una vez conectado, pide al asistente que inicialice el Company OS para empezar.",
       reviewText: "Revisa o revoca los asistentes conectados en /settings/connected-apps. Para scripts/herramientas CLI en lugar de un asistente alojado, usa un personal access token en lugar de OAuth.",
       goToEditor: "Ir a /editor",
     },

@@ -4,7 +4,7 @@ export const fr: Dictionary = {
   init: {
     setupTitle: "Configurez votre Company OS",
     setupDescription:
-      "Cela crée la structure de départ — os/, data/, AGENTS.md et os/skills/init.md. Rien n'est demandé ici : une fois connecté, votre assistant IA lit os/skills/init.md et vous interroge pour le reste.",
+      "Cela crée la structure de départ — os/, data/ et AGENTS.md. Rien n'est demandé ici : une fois connecté, votre assistant IA configure le reste via sa propre connexion MCP et vous interroge pour les détails.",
     languagePrompt:
       "Choisissez ci-dessous la langue de votre Company OS — ce choix est permanent pour ce Company OS une fois confirmé.",
     submit: "Initialiser le Company OS",
@@ -15,10 +15,10 @@ export const fr: Dictionary = {
       readyTitle: "Votre Company OS est prêt",
       connectTitle: "Connecter Claude ou ChatGPT",
       justCreatedText:
-        "La structure de départ (os/, data/, AGENTS.md, os/skills/init.md) a été créée. Connectez un assistant IA ci-dessous, puis demandez-lui de lire os/skills/init.md — il vous interrogera et configurera le reste.",
+        "La structure de départ (os/, data/, AGENTS.md) a été créée. Connectez un assistant IA ci-dessous, puis demandez-lui d'initialiser le Company OS — il accédera au processus de configuration via sa propre connexion MCP, vous interrogera et configurera le reste.",
       step1: "Dans le flux « ajouter un connecteur »/« ajouter un serveur MCP » de Claude ou ChatGPT, saisissez :",
       step2: "L'assistant découvre automatiquement le flux OAuth — connectez-vous avec votre identifiant propriétaire lorsque demandé, puis approuvez la connexion.",
-      step3: "Une fois connecté, demandez à l'assistant de lire os/skills/init.md pour commencer.",
+      step3: "Une fois connecté, demandez à l'assistant d'initialiser le Company OS pour commencer.",
       reviewText: "Consultez ou révoquez les assistants connectés dans /settings/connected-apps. Pour des scripts/outils CLI plutôt qu'un assistant hébergé, utilisez un personal access token au lieu d'OAuth.",
       goToEditor: "Aller à /editor",
     },
