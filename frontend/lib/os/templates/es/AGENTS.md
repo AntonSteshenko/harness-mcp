@@ -1,4 +1,5 @@
 # Agentes
 
-Este bucket aloja un Company OS. Para cualquier duda sobre cómo operar este
-sistema, lee primero la skill en `os/skills/init.md`.
+Este bucket aloja un Company OS. Pide a tu asistente conectado que lo
+configure: accede al motor del Company OS a través de su propia conexión
+MCP, no mediante un archivo de este bucket.

@@ -1,4 +1,5 @@
 # Agents
 
-This bucket hosts a Company OS. For any question about how to operate this
-system, read the skill at `os/skills/init.md` first.
+This bucket hosts a Company OS. Ask your connected assistant to set it up —
+it reaches the Company OS engine through its own MCP connection, not through
+a file in this bucket.

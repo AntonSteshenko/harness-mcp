@@ -8,37 +8,35 @@ import { SupportedLanguage } from "@/lib/i18n/languages";
 export type OsStatus = "empty" | "already_initialized" | "partial";
 
 /**
- * Fixed, product-provided templates (FR-008, FR-009), one pair per supported
- * language (spec 015, research.md §4) — kept as plain Markdown files in
- * ./templates/<language>/ (not inline string constants) so they can be
- * edited directly. Read once at module load, with every path spelled out
+ * Fixed, product-provided `AGENTS.md` stub, one per supported language
+ * (spec 015 research.md §4) — kept as a plain Markdown file in
+ * ./templates/<language>/ (not an inline string constant) so it can be
+ * edited directly. Read once at module load, with the path spelled out
  * literally (not built from a runtime variable) so Vercel's build-time file
- * tracing (`@vercel/nft`) can find and bundle all twelve files — the same
+ * tracing (`@vercel/nft`) can find and bundle all six files — the same
  * reasoning as spec 014's original single-language template (research.md §5).
  * `process.cwd()` is the Next.js project root (`frontend/`) both in
  * `next dev` and in a deployed serverless function.
+ *
+ * Spec 016: this used to be a pair (`AGENTS.md` + `os/skills/init.md`) — the
+ * second file is gone. The engine+business-setup content it held now lives
+ * once, in English, as MCP resources (`lib/os/engine/*.md`, never written to
+ * the bucket) — this stub's only job is pointing whatever assistant connects
+ * next at that MCP connection instead of a bucket file (research.md §7).
  */
 const TEMPLATES_DIR = join(process.cwd(), "lib/os/templates");
 
-interface SkeletonTemplate {
-  agentsMd: string;
-  initSkillMd: string;
+function loadAgentsMdStub(language: SupportedLanguage): string {
+  return readFileSync(join(TEMPLATES_DIR, language, "AGENTS.md"), "utf-8");
 }
 
-function loadTemplate(language: SupportedLanguage): SkeletonTemplate {
-  return {
-    agentsMd: readFileSync(join(TEMPLATES_DIR, language, "AGENTS.md"), "utf-8"),
-    initSkillMd: readFileSync(join(TEMPLATES_DIR, language, "init.md"), "utf-8"),
-  };
-}
-
-const SKELETON_TEMPLATES: Record<SupportedLanguage, SkeletonTemplate> = {
-  en: loadTemplate("en"),
-  it: loadTemplate("it"),
-  ru: loadTemplate("ru"),
-  fr: loadTemplate("fr"),
-  de: loadTemplate("de"),
-  es: loadTemplate("es"),
+const AGENTS_MD_STUBS: Record<SupportedLanguage, string> = {
+  en: loadAgentsMdStub("en"),
+  it: loadAgentsMdStub("it"),
+  ru: loadAgentsMdStub("ru"),
+  fr: loadAgentsMdStub("fr"),
+  de: loadAgentsMdStub("de"),
+  es: loadAgentsMdStub("es"),
 };
 
 /**
@@ -58,12 +56,14 @@ export async function checkOsStatus(): Promise<OsStatus> {
 
 /**
  * Creates the initial Company OS skeleton (FR-006, FR-008, FR-009) — just
- * the router (`AGENTS.md`), the init skill (`os/skills/init.md`), and the
- * permanent `os/language` marker (spec 015, FR-006, FR-007); no
- * business-specific content is written here. `os/identity.md` and
- * everything else business-specific is deliberately left for the connected
- * AI assistant's own interview (the init skill's own "Fase 1 — Intervista"),
- * not asked for through this app (FR-007 removed, 2026-07-25 revision).
+ * the `AGENTS.md` stub and the permanent `os/language` marker (spec 015,
+ * FR-006, FR-007); no business-specific content is written here. `os/`'s
+ * real content (`AGENTS.md`'s full router, `os/identity.md`, everything
+ * else business-specific) is deliberately left for the connected AI
+ * assistant, via the `init`/`engine` MCP resources, not asked for through
+ * this app (FR-007 removed, 2026-07-25 revision; spec 016 contracts/
+ * init-skeleton.md — `os/skills/init.md` is no longer written at all, since
+ * that content is now MCP-only, per spec 016 FR-001).
  * Re-checks checkOsStatus() first and is a no-op if either /os or /data
  * already exists, closing most of the check-then-act race a double-submit
  * could otherwise open (research.md §4, FR-011, SC-004) — now also covering
@@ -75,12 +75,9 @@ export async function initializeCompanyOs(language: SupportedLanguage): Promise<
     return { created: false };
   }
 
-  const template = SKELETON_TEMPLATES[language];
-
   await createDirectory("os");
   await createDirectory("data");
-  await createFile("AGENTS.md", template.agentsMd);
-  await createFile("os/skills/init.md", template.initSkillMd);
+  await createFile("AGENTS.md", AGENTS_MD_STUBS[language]);
   await createFile("os/language", language);
 
   return { created: true };
