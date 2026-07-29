@@ -21,7 +21,7 @@ export const en: Dictionary = {
       step2: "The assistant discovers the OAuth flow automatically — sign in with your owner credential when prompted, then approve the connection.",
       step3: "Once connected, ask the assistant to initialize the Company OS to get started.",
       reviewText: "Review or revoke connected assistants at /settings/connected-apps. For scripts/CLI tools instead of a hosted assistant, use a personal access token instead of OAuth.",
-      goToEditor: "Go to /editor",
+      goToEditor: "Go to /files",
     },
     submitUnauthorized: "Sign in required",
     submitInvalidLanguage: "Select one of the six supported languages.",
@@ -120,6 +120,7 @@ export const en: Dictionary = {
       saveFailedLabel: "Save failed",
       discardConfirm: "You have unsaved changes. Discard them and open a different file?",
       loadFailed: "Failed to load file",
+      openedPathIsFolder: (path) => `"${path}" is a folder, not a file.`,
     },
     csv: {
       empty: "This file is empty.",

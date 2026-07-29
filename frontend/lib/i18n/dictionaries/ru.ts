@@ -20,7 +20,7 @@ export const ru: Dictionary = {
       step2: "Ассистент автоматически обнаружит процесс OAuth — войдите с учётными данными владельца, когда будет предложено, затем подтвердите подключение.",
       step3: "После подключения попросите ассистента инициализировать Company OS, чтобы начать.",
       reviewText: "Просмотреть или отозвать подключённых ассистентов можно в /settings/connected-apps. Для скриптов/CLI-инструментов вместо размещённого ассистента используйте personal access token вместо OAuth.",
-      goToEditor: "Перейти в /editor",
+      goToEditor: "Перейти в /files",
     },
     submitUnauthorized: "Требуется вход",
     submitInvalidLanguage: "Выберите один из шести поддерживаемых языков.",
@@ -119,6 +119,7 @@ export const ru: Dictionary = {
       saveFailedLabel: "Сохранение не удалось",
       discardConfirm: "У вас есть несохранённые изменения. Отменить их и открыть другой файл?",
       loadFailed: "Не удалось загрузить файл",
+      openedPathIsFolder: (path) => `«${path}» — это папка, а не файл.`,
     },
     csv: {
       empty: "Этот файл пуст.",

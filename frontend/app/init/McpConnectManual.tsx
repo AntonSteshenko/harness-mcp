@@ -35,7 +35,7 @@ export function McpConnectManual({
       <p>{dict.reviewText}</p>
 
       <p>
-        <a href="/editor">{dict.goToEditor}</a>
+        <a href="/files">{dict.goToEditor}</a>
       </p>
     </>
   );

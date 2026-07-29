@@ -20,7 +20,7 @@ export const de: Dictionary = {
       step2: "Der Assistent erkennt den OAuth-Ablauf automatisch — melden Sie sich bei Aufforderung mit Ihrer Inhaber-Anmeldeinformation an und genehmigen Sie dann die Verbindung.",
       step3: "Bitten Sie den Assistenten nach der Verbindung, das Company OS zu initialisieren, um zu beginnen.",
       reviewText: "Verbundene Assistenten unter /settings/connected-apps überprüfen oder widerrufen. Für Skripte/CLI-Tools statt eines gehosteten Assistenten verwenden Sie einen Personal Access Token anstelle von OAuth.",
-      goToEditor: "Zu /editor",
+      goToEditor: "Zu /files",
     },
     submitUnauthorized: "Anmeldung erforderlich",
     submitInvalidLanguage: "Wählen Sie eine der sechs unterstützten Sprachen.",
@@ -119,6 +119,7 @@ export const de: Dictionary = {
       saveFailedLabel: "Speichern fehlgeschlagen",
       discardConfirm: "Sie haben nicht gespeicherte Änderungen. Verwerfen und eine andere Datei öffnen?",
       loadFailed: "Datei konnte nicht geladen werden",
+      openedPathIsFolder: (path) => `„${path}" ist ein Ordner, keine Datei.`,
     },
     csv: {
       empty: "Diese Datei ist leer.",

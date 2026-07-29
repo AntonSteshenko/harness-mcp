@@ -7,6 +7,22 @@ function storageObviouslyUnconfigured(): boolean {
 }
 
 /**
+ * `x-pathname`: forwards the current request's path to Server Components
+ * that can't get it from route `params` — specifically `app/files/layout.tsx`
+ * (spec 018 research.md §7), which must sit at the stable `/files` segment
+ * (not inside the `[[...path]]` catch-all itself) for its rendered
+ * `EditorApp` to survive client-side navigation between different open
+ * files/folders, and so has no dynamic-segment params of its own to read.
+ * Set on the *request* (not the response) — Next's documented pattern for
+ * making the current pathname readable via `headers()` server-side.
+ */
+function withPathnameHeader(request: NextRequest): NextResponse {
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-pathname", request.nextUrl.pathname);
+  return NextResponse.next({ request: { headers: requestHeaders } });
+}
+
+/**
  * Sends every request to /init while storage is obviously unconfigured (spec
  * 014-os-init-page) — now that instrumentation.ts no longer exits the
  * process over it, the app boots regardless, so something has to point a
@@ -23,14 +39,14 @@ function storageObviouslyUnconfigured(): boolean {
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   if (pathname === "/init" || pathname.startsWith("/_next") || pathname === "/favicon.ico") {
-    return NextResponse.next();
+    return withPathnameHeader(request);
   }
 
   if (storageObviouslyUnconfigured()) {
     return NextResponse.redirect(new URL("/init", request.url));
   }
 
-  return NextResponse.next();
+  return withPathnameHeader(request);
 }
 
 export const config = {

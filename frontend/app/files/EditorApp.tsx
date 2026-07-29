@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import type { SupportedLanguage } from "@/lib/i18n/languages";
@@ -16,7 +17,12 @@ import { Header } from "./Header";
  */
 export default function EditorApp({ osName, language }: { osName: string; language: SupportedLanguage }) {
   const dict = getDictionary(language).editor;
-  const [selectedPath, setSelectedPath] = useState<string | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
+  // The open file's path is the URL's own path (spec 018 FR-012), not local
+  // state, so it can be deep-linked, refreshed, shared, and stepped through
+  // via back/forward.
+  const selectedPath = pathname === "/files" ? null : pathname.slice("/files/".length);
   const [isDirty, setIsDirty] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -24,18 +30,20 @@ export default function EditorApp({ osName, language }: { osName: string; langua
     if (isDirty && !window.confirm(dict.file.discardConfirm)) {
       return;
     }
-    setSelectedPath(path);
+    router.push(`/files/${path.split("/").map(encodeURIComponent).join("/")}`);
     setSidebarOpen(false);
   }
 
   /** Closes the editor when the file it has open is deleted from the tree (FR-003). */
   function handleFileDeleted(path: string) {
-    setSelectedPath((current) => (current === path ? null : current));
+    if (selectedPath === path) router.replace("/files");
   }
 
-  /** Closes the editor when the open file was inside a folder that got deleted. */
+  /** Clears the URL when the open file/folder was the one deleted, or was inside it. */
   function handleFolderDeleted(folderPath: string) {
-    setSelectedPath((current) => (current && current.startsWith(`${folderPath}/`) ? null : current));
+    if (selectedPath && (selectedPath === folderPath || selectedPath.startsWith(`${folderPath}/`))) {
+      router.replace("/files");
+    }
   }
 
   return (
@@ -45,8 +53,10 @@ export default function EditorApp({ osName, language }: { osName: string; langua
         <div className={`sidebar${sidebarOpen ? " sidebar-open" : ""}`}>
           <FileTree
             onSelectFile={handleSelectFile}
+            onSelectFolder={handleSelectFile}
             onFileDeleted={handleFileDeleted}
             onFolderDeleted={handleFolderDeleted}
+            expandToPath={selectedPath}
             dict={dict.tree}
           />
         </div>

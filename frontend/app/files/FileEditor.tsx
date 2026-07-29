@@ -39,6 +39,7 @@ type LoadState =
   | { status: "idle" }
   | { status: "loading" }
   | { status: "unsupported"; message: string }
+  | { status: "folder"; message: string }
   | { status: "error"; message: string }
   | { status: "ready"; session: EditorSession };
 
@@ -67,6 +68,10 @@ export function FileEditor({ path, onDirtyChange, dict, csvDict }: FileEditorPro
 
         if (res.status === 422) {
           setState({ status: "unsupported", message: data.message });
+          return;
+        }
+        if (!res.ok && data.code === "type_mismatch") {
+          setState({ status: "folder", message: dict.openedPathIsFolder(path) });
           return;
         }
         if (!res.ok) {
@@ -172,6 +177,9 @@ export function FileEditor({ path, onDirtyChange, dict, csvDict }: FileEditorPro
     return <p style={{ color: "#888" }}>{dict.loading(path)}</p>;
   }
   if (state.status === "unsupported") {
+    return <p style={{ color: "#888" }}>{state.message}</p>;
+  }
+  if (state.status === "folder") {
     return <p style={{ color: "#888" }}>{state.message}</p>;
   }
   if (state.status === "error") {

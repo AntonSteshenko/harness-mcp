@@ -20,7 +20,7 @@ export const es: Dictionary = {
       step2: "El asistente descubre automáticamente el flujo OAuth — inicia sesión con tu credencial de propietario cuando se te pida, y luego aprueba la conexión.",
       step3: "Una vez conectado, pide al asistente que inicialice el Company OS para empezar.",
       reviewText: "Revisa o revoca los asistentes conectados en /settings/connected-apps. Para scripts/herramientas CLI en lugar de un asistente alojado, usa un personal access token en lugar de OAuth.",
-      goToEditor: "Ir a /editor",
+      goToEditor: "Ir a /files",
     },
     submitUnauthorized: "Se requiere iniciar sesión",
     submitInvalidLanguage: "Selecciona uno de los seis idiomas admitidos.",
@@ -119,6 +119,7 @@ export const es: Dictionary = {
       saveFailedLabel: "Error al guardar",
       discardConfirm: "Tienes cambios sin guardar. ¿Descartarlos y abrir otro archivo?",
       loadFailed: "No se pudo cargar el archivo",
+      openedPathIsFolder: (path) => `"${path}" es una carpeta, no un archivo.`,
     },
     csv: {
       empty: "Este archivo está vacío.",

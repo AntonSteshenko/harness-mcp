@@ -115,6 +115,7 @@ export interface Dictionary {
       saveFailedLabel: string;
       discardConfirm: string;
       loadFailed: string;
+      openedPathIsFolder: (path: string) => string;
     };
     csv: {
       empty: string;

@@ -29,26 +29,48 @@ interface UploadResult {
 
 export interface FileTreeProps {
   onSelectFile: (path: string) => void;
+  /** Called with a folder's path whenever the user clicks a folder row (in
+   * addition to that folder locally toggling expand/collapse), so the URL
+   * can reflect folders being browsed too, not just files (spec 018 FR-004). */
+  onSelectFolder?: (path: string) => void;
   /** Called with a file's path after it's successfully deleted, so the
    * caller can close it if it was open in the editor (FR-003, research.md §3). */
   onFileDeleted?: (path: string) => void;
   /** Called with a folder's path after it's successfully deleted, so the
    * caller can close the editor if it had a file open from inside it. */
   onFolderDeleted?: (path: string) => void;
+  /** When set, every ancestor folder of this path auto-expands (in addition
+   * to the always-expanded root), so a deep-linked file is visible without
+   * the user manually opening each folder (spec 018 FR-003, research.md §4). */
+  expandToPath?: string | null;
   dict: Dictionary["editor"]["tree"];
+}
+
+/** True when `ancestorPath` is `targetPath` itself or one of its containing folders. */
+function isAncestorOf(ancestorPath: string, targetPath: string): boolean {
+  return ancestorPath === targetPath || targetPath.startsWith(`${ancestorPath}/`);
 }
 
 /** Root of the browsable tree (FR-001). Lazily fetches each directory's
  * contents from GET /api/tree as it's expanded (research.md §2). */
-export function FileTree({ onSelectFile, onFileDeleted, onFolderDeleted, dict }: FileTreeProps) {
+export function FileTree({
+  onSelectFile,
+  onSelectFolder,
+  onFileDeleted,
+  onFolderDeleted,
+  expandToPath,
+  dict,
+}: FileTreeProps) {
   return (
     <DirectoryNode
       path=""
       label="/"
       depth={0}
       onSelectFile={onSelectFile}
+      onSelectFolder={onSelectFolder}
       onFileDeleted={onFileDeleted}
       onFolderDeleted={onFolderDeleted}
+      expandToPath={expandToPath}
       defaultExpanded
       dict={dict}
     />
@@ -230,9 +252,11 @@ function DirectoryNode({
   label,
   depth,
   onSelectFile,
+  onSelectFolder,
   onFileDeleted,
   onFolderDeleted,
   onDeleted,
+  expandToPath,
   defaultExpanded,
   dict,
 }: {
@@ -240,16 +264,21 @@ function DirectoryNode({
   label: string;
   depth: number;
   onSelectFile: (p: string) => void;
+  onSelectFolder?: (p: string) => void;
   onFileDeleted?: (path: string) => void;
   onFolderDeleted?: (path: string) => void;
   /** Invoked after this node itself is successfully deleted, so its parent
    * can refresh and drop it from the listing. Not set on the root node
    * (depth 0), which can't be deleted. */
   onDeleted?: () => void;
+  /** See FileTreeProps.expandToPath — threaded down unchanged to every child. */
+  expandToPath?: string | null;
   defaultExpanded?: boolean;
   dict: Dictionary["editor"]["tree"];
 }) {
-  const [expanded, setExpanded] = useState(Boolean(defaultExpanded));
+  const [expanded, setExpanded] = useState(
+    Boolean(defaultExpanded) || (expandToPath ? isAncestorOf(path, expandToPath) : false),
+  );
   const [entries, setEntries] = useState<TreeListing | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -505,7 +534,10 @@ function DirectoryNode({
       <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
         <div
           style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", userSelect: "none", flex: 1, minWidth: 0 }}
-          onClick={() => setExpanded((e) => !e)}
+          onClick={() => {
+            setExpanded((e) => !e);
+            if (path !== "") onSelectFolder?.(path);
+          }}
         >
           <ChevronIcon expanded={expanded} />
           <FolderIcon />
@@ -549,9 +581,11 @@ function DirectoryNode({
               label={baseName(d.path)}
               depth={depth + 1}
               onSelectFile={onSelectFile}
+              onSelectFolder={onSelectFolder}
               onFileDeleted={onFileDeleted}
               onFolderDeleted={onFolderDeleted}
               onDeleted={refreshEntries}
+              expandToPath={expandToPath}
               dict={dict}
             />
           ))}
