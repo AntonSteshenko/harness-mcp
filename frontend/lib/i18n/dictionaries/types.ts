@@ -116,6 +116,9 @@ export interface Dictionary {
       discardConfirm: string;
       loadFailed: string;
       openedPathIsFolder: (path: string) => string;
+      externalChangeMessage: string;
+      externalChangeReload: string;
+      externalChangeKeepMine: string;
     };
     csv: {
       empty: string;

@@ -120,6 +120,9 @@ export const ru: Dictionary = {
       discardConfirm: "У вас есть несохранённые изменения. Отменить их и открыть другой файл?",
       loadFailed: "Не удалось загрузить файл",
       openedPathIsFolder: (path) => `«${path}» — это папка, а не файл.`,
+      externalChangeMessage: "Этот файл был изменён извне.",
+      externalChangeReload: "Загрузить внешнюю версию",
+      externalChangeKeepMine: "Оставить мою версию",
     },
     csv: {
       empty: "Этот файл пуст.",

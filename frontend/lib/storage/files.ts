@@ -1,4 +1,4 @@
-import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, HeadObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { BUCKET, s3Client } from "./client";
 import { alreadyExists, notFound, typeMismatch, wrapStorageError } from "./errors";
 import { move } from "./move";
@@ -15,6 +15,10 @@ export interface FileMetadata {
   path: string;
   size: number;
   lastModified: string;
+  /** S3's opaque ETag (quoted hex string), used to cheaply detect whether a
+   * file changed since it was last loaded (spec 019 research.md §3) —
+   * compare it as an opaque string, never parse or reformat it. */
+  etag: string;
 }
 
 export interface FileContent extends FileMetadata {
@@ -33,11 +37,16 @@ export async function createFile(path: string, content: string): Promise<FileMet
       throw alreadyExists(path);
     }
 
-    await s3Client.send(
+    const result = await s3Client.send(
       new PutObjectCommand({ Bucket: BUCKET, Key: key, Body: content }),
     );
 
-    return { path, size: Buffer.byteLength(content), lastModified: new Date().toISOString() };
+    return {
+      path,
+      size: Buffer.byteLength(content),
+      lastModified: new Date().toISOString(),
+      etag: result.ETag ?? "",
+    };
   } catch (err) {
     throw wrapStorageError(err, `creating file "${path}"`);
   }
@@ -55,6 +64,7 @@ export async function readFile(path: string): Promise<FileContent> {
       content,
       size: result.ContentLength ?? Buffer.byteLength(content),
       lastModified: (result.LastModified ?? new Date()).toISOString(),
+      etag: result.ETag ?? "",
     };
   } catch (err) {
     if (isNotFoundError(err)) {
@@ -83,10 +93,43 @@ export async function updateFile(path: string, content: string): Promise<FileMet
       throw notFound(path);
     }
 
-    await s3Client.send(new PutObjectCommand({ Bucket: BUCKET, Key: key, Body: content }));
-    return { path, size: Buffer.byteLength(content), lastModified: new Date().toISOString() };
+    const result = await s3Client.send(new PutObjectCommand({ Bucket: BUCKET, Key: key, Body: content }));
+    return {
+      path,
+      size: Buffer.byteLength(content),
+      lastModified: new Date().toISOString(),
+      etag: result.ETag ?? "",
+    };
   } catch (err) {
     throw wrapStorageError(err, `updating file "${path}"`);
+  }
+}
+
+/**
+ * Cheaply checks whether the file at `path` has changed, without
+ * transferring its content (`HeadObjectCommand`, mirroring `headObjectExists`
+ * in `lib/storage/paths.ts`). `not_found`/`type_mismatch` on the same terms
+ * as `readFile()` (spec 019 research.md §2, FR-002, FR-010).
+ */
+export async function getFileMetadata(path: string): Promise<FileMetadata> {
+  const key = normalizeFilePath(path);
+
+  try {
+    const result = await s3Client.send(new HeadObjectCommand({ Bucket: BUCKET, Key: key }));
+    return {
+      path,
+      size: result.ContentLength ?? 0,
+      lastModified: (result.LastModified ?? new Date()).toISOString(),
+      etag: result.ETag ?? "",
+    };
+  } catch (err) {
+    if (isNotFoundError(err)) {
+      if (await hasAnyObjectWithPrefix(normalizeDirectoryPath(key))) {
+        throw typeMismatch(path, "file");
+      }
+      throw notFound(path);
+    }
+    throw wrapStorageError(err, `reading metadata for "${path}"`);
   }
 }
 

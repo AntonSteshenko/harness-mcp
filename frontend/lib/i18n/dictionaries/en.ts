@@ -121,6 +121,9 @@ export const en: Dictionary = {
       discardConfirm: "You have unsaved changes. Discard them and open a different file?",
       loadFailed: "Failed to load file",
       openedPathIsFolder: (path) => `"${path}" is a folder, not a file.`,
+      externalChangeMessage: "This file changed externally.",
+      externalChangeReload: "Reload external version",
+      externalChangeKeepMine: "Keep mine",
     },
     csv: {
       empty: "This file is empty.",

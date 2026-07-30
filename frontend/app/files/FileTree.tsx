@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
+import useSWR from "swr";
 import { authedFetch } from "@/lib/editorFetch";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import {
@@ -279,52 +280,27 @@ function DirectoryNode({
   const [expanded, setExpanded] = useState(
     Boolean(defaultExpanded) || (expandToPath ? isAncestorOf(path, expandToPath) : false),
   );
-  const [entries, setEntries] = useState<TreeListing | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const uploadFilesInputRef = useRef<HTMLInputElement>(null);
   const uploadFolderInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (!expanded || entries !== null) return;
-
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-
-    authedFetch(`/api/tree?path=${encodeURIComponent(path)}`)
-      .then(async (res) => {
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message ?? dict.dirLoadFailed);
-        if (!cancelled) setEntries(data as TreeListing);
-      })
-      .catch((err: Error) => {
-        if (!cancelled) setError(err.message);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [expanded, entries, path]);
-
-  /** Re-fetches this directory's listing after an upload, so newly created
-   * files appear without a full page reload (FR-005). Best-effort: on
-   * failure the previously-shown listing is left as-is. */
-  async function refreshEntries() {
-    try {
-      const res = await authedFetch(`/api/tree?path=${encodeURIComponent(path)}`);
-      const data = await res.json();
-      if (res.ok) setEntries(data as TreeListing);
-    } catch {
-      // best-effort refresh only
-    }
-  }
+  // Fetches this directory's listing while expanded, and keeps it fresh via
+  // the SWRConfig-wide refreshInterval/revalidateOnFocus (app/files/layout.tsx)
+  // so changes made outside this tab (e.g. by an agent) show up in the
+  // background — paused automatically while the tab is hidden (spec 019
+  // research.md §1, FR-001, FR-003, FR-006).
+  const {
+    data: entries,
+    error,
+    isLoading: loading,
+    mutate: refreshEntries,
+  } = useSWR<TreeListing>(expanded ? `/api/tree?path=${encodeURIComponent(path)}` : null, async (url: string) => {
+    const res = await authedFetch(url);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message ?? dict.dirLoadFailed);
+    return data as TreeListing;
+  });
 
   async function handleUpload(fileList: FileList | null, mode: "files" | "folder") {
     if (!fileList || fileList.length === 0) return;
@@ -570,7 +546,7 @@ function DirectoryNode({
       {expanded && (
         <div>
           {loading && <div style={{ color: "#888" }}>{dict.loading}</div>}
-          {error && <div style={{ color: "crimson" }}>{error}</div>}
+          {error && <div style={{ color: "crimson" }}>{error.message}</div>}
           {entries && entries.directories.length === 0 && entries.files.length === 0 && (
             <div style={{ color: "#888", fontStyle: "italic", paddingLeft: 30 }}>{dict.empty}</div>
           )}

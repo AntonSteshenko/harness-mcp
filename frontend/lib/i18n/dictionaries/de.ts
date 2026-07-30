@@ -120,6 +120,9 @@ export const de: Dictionary = {
       discardConfirm: "Sie haben nicht gespeicherte Änderungen. Verwerfen und eine andere Datei öffnen?",
       loadFailed: "Datei konnte nicht geladen werden",
       openedPathIsFolder: (path) => `„${path}" ist ein Ordner, keine Datei.`,
+      externalChangeMessage: "Diese Datei wurde extern geändert.",
+      externalChangeReload: "Externe Version laden",
+      externalChangeKeepMine: "Meine Version behalten",
     },
     csv: {
       empty: "Diese Datei ist leer.",

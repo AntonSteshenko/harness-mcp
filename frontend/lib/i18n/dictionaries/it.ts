@@ -120,6 +120,9 @@ export const it: Dictionary = {
       discardConfirm: "Hai modifiche non salvate. Scartarle e aprire un altro file?",
       loadFailed: "Impossibile caricare il file",
       openedPathIsFolder: (path) => `"${path}" è una cartella, non un file.`,
+      externalChangeMessage: "Questo file è stato modificato esternamente.",
+      externalChangeReload: "Ricarica la versione esterna",
+      externalChangeKeepMine: "Mantieni la mia",
     },
     csv: {
       empty: "Questo file è vuoto.",

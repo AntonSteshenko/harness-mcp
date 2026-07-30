@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireOwnerSession } from "@/lib/oauth/session";
-import { createFile, deleteFile, readFile, updateFile } from "@/lib/storage/files";
+import { createFile, deleteFile, getFileMetadata, readFile, updateFile } from "@/lib/storage/files";
 import { StorageError } from "@/lib/storage/errors";
 
 const STATUS_BY_CODE: Record<StorageError["code"], number> = {
@@ -53,6 +53,34 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(result);
   } catch (err) {
     return errorResponse(err, "Unexpected error reading file");
+  }
+}
+
+/**
+ * Cheap change-detection check for the currently open file (spec 019,
+ * contracts/file-sync-contract.md): no body, just the `ETag`/`Last-Modified`
+ * of `path` — lets the client poll for a change without re-downloading
+ * content on every tick (FR-010).
+ */
+export async function HEAD(request: NextRequest) {
+  const authError = await requireOwnerSession();
+  if (authError) return new NextResponse(null, { status: authError.status });
+
+  const path = request.nextUrl.searchParams.get("path");
+  if (!path) {
+    return new NextResponse(null, { status: 404 });
+  }
+
+  try {
+    const result = await getFileMetadata(path);
+    return new NextResponse(null, {
+      status: 200,
+      headers: { ETag: result.etag, "Last-Modified": new Date(result.lastModified).toUTCString() },
+    });
+  } catch (err) {
+    const storageError =
+      err instanceof StorageError ? err : new StorageError("storage_unreachable", "Unexpected error reading metadata");
+    return new NextResponse(null, { status: STATUS_BY_CODE[storageError.code] });
   }
 }
 
