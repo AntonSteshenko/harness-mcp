@@ -143,6 +143,7 @@ export const de: Dictionary = {
       lastUsed: "Zuletzt verwendet",
       never: "nie",
       revoke: "Widerrufen",
+      signOut: "Abmelden",
     },
     pat: {
       title: "Personal Access Tokens",

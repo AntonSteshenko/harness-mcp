@@ -139,6 +139,7 @@ export interface Dictionary {
       lastUsed: string;
       never: string;
       revoke: string;
+      signOut: string;
     };
     pat: {
       title: string;

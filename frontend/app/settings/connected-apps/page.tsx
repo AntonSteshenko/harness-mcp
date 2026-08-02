@@ -29,7 +29,12 @@ export default async function ConnectedAppsPage() {
 
   return (
     <main style={{ maxWidth: 720, margin: "2rem auto", fontFamily: "system-ui, sans-serif" }}>
-      <h1>{dict.title}</h1>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <h1>{dict.title}</h1>
+        <form method="POST" action="/oauth/logout">
+          <button type="submit">{dict.signOut}</button>
+        </form>
+      </div>
       {rows.length === 0 ? (
         <p>{dict.empty}</p>
       ) : (
