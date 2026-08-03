@@ -137,3 +137,7 @@ A browser UI at `/files` (same app/dependencies as the MCP server above — `doc
 `/files` requires signing in first, with the same owner credential used for the MCP connector flow above — a signed-out visit redirects to the sign-in screen, and a session started from either entry point covers both. See [specs/009-editor-login-gate/quickstart.md](specs/009-editor-login-gate/quickstart.md) for the full walkthrough.
 
 Open it at: `http://localhost:3000/files`
+
+## License
+
+Licensed under the [PolyForm Internal Use License 1.0.0](LICENSE) — free to use, run, and modify for your own or your company's internal operations; distribution (including selling or offering a product/service based on it) requires a separate agreement with the copyright holder.
