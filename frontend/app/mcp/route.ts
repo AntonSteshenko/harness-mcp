@@ -3,6 +3,7 @@ import { registerTools } from "@/lib/mcp-tools";
 import { registerEngineTools } from "@/lib/mcp-tools/engineTools";
 import { registerInboxTools } from "@/lib/mcp-tools/inboxTools";
 import { registerMessagingTools } from "@/lib/mcp-tools/messagingTools";
+import { registerTreeTools } from "@/lib/mcp-tools/treeTools";
 import { verifyPersonalAccessToken } from "@/lib/oauth/personalAccessTokens";
 import { verifyAccessToken } from "@/lib/oauth/tokens";
 
@@ -21,6 +22,7 @@ const handler = createMcpHandler(
     await registerEngineTools(server);
     await registerMessagingTools(server);
     await registerInboxTools(server);
+    await registerTreeTools(server);
   },
   {
     serverInfo,

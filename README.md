@@ -95,6 +95,8 @@ The repo-root `docker-compose.yml`/MinIO setup above is only for local developme
 
 An MCP server exposes the configured storage above as filesystem-like tools (create/read/update/delete files; create/list/delete directories, recursively; move/rename either) — see [specs/002-s3-mcp-server/contracts/mcp-tools.md](specs/002-s3-mcp-server/contracts/mcp-tools.md) for the full tool list, and [specs/002-s3-mcp-server/quickstart.md](specs/002-s3-mcp-server/quickstart.md) for a runnable walkthrough.
 
+Three additional tools — `list_directory_tree`, `find_files_by_name`, `search_file_content` — let a connected assistant map or search a large nested tree (e.g. a Company OS with many skills/policies folders) in a single call instead of one `list_directory` call per level; see [specs/022-mcp-tree-search/contracts/mcp-tools-tree.md](specs/022-mcp-tree-search/contracts/mcp-tools-tree.md) for the full contract, and [specs/022-mcp-tree-search/quickstart.md](specs/022-mcp-tree-search/quickstart.md) for a runnable walkthrough.
+
 Prerequisites: the storage backend must be running and reachable (e.g. `docker compose up -d` for local MinIO), its bucket must already exist, and `frontend/.env.local` must be set up per the section above.
 
 Install dependencies once:
