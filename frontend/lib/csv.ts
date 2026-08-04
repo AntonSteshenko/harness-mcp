@@ -9,10 +9,41 @@ export interface CsvDocument {
  * more rows are truncated with a notice rather than rendered unbounded. */
 export const MAX_TABLE_ROWS = 5000;
 
+const CANDIDATE_DELIMITERS = [",", ";", "\t"] as const;
+
+/** Picks the delimiter that occurs most often (outside quoted fields) in the
+ * header line, so files exported with `;` (common in European locales) or
+ * tabs render as columns instead of one giant first field. Defaults to `,`
+ * when nothing else appears. */
+function detectDelimiter(headerLine: string): string {
+  let best = ",";
+  let bestCount = 0;
+  let inQuotes = false;
+  const counts = new Map<string, number>(CANDIDATE_DELIMITERS.map((d) => [d, 0]));
+
+  for (let i = 0; i < headerLine.length; i++) {
+    const char = headerLine[i];
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (!inQuotes && counts.has(char)) {
+      counts.set(char, (counts.get(char) ?? 0) + 1);
+    }
+  }
+
+  for (const [delimiter, count] of counts) {
+    if (count > bestCount) {
+      best = delimiter;
+      bestCount = count;
+    }
+  }
+
+  return best;
+}
+
 /** Splits raw CSV text into rows of fields, honoring RFC 4180 double-quote
- * escaping: a quoted field may contain commas or newlines, and `""` inside a
- * quoted field decodes to a literal `"`. */
-function splitRows(text: string): string[][] {
+ * escaping: a quoted field may contain the delimiter or newlines, and `""`
+ * inside a quoted field decodes to a literal `"`. */
+function splitRows(text: string, delimiter: string): string[][] {
   const rows: string[][] = [];
   let row: string[] = [];
   let field = "";
@@ -37,7 +68,7 @@ function splitRows(text: string): string[][] {
 
     if (char === '"') {
       inQuotes = true;
-    } else if (char === ",") {
+    } else if (char === delimiter) {
       row.push(field);
       field = "";
     } else if (char === "\n") {
@@ -66,7 +97,10 @@ export function parseCsv(text: string): CsvDocument {
     return { headers: [], rows: [], truncated: false, totalRowCount: 0 };
   }
 
-  const [headers = [], ...allRows] = splitRows(text);
+  const headerLineEnd = text.indexOf("\n");
+  const delimiter = detectDelimiter(headerLineEnd === -1 ? text : text.slice(0, headerLineEnd));
+
+  const [headers = [], ...allRows] = splitRows(text, delimiter);
   const totalRowCount = allRows.length;
   const truncated = totalRowCount > MAX_TABLE_ROWS;
   const rows = truncated ? allRows.slice(0, MAX_TABLE_ROWS) : allRows;
