@@ -126,6 +126,7 @@ export const ru: Dictionary = {
     },
     csv: {
       empty: "Этот файл пуст.",
+      summary: (rows, columns) => `${rows.toLocaleString()} строк × ${columns.toLocaleString()} столбцов.`,
       truncated: (shown, total) => `Показано ${shown.toLocaleString()} из ${total.toLocaleString()} строк.`,
       noRows: "Нет строк с данными.",
     },

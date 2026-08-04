@@ -44,8 +44,11 @@ export function CsvTableEditor({ value, onChange, mode, dict }: CsvTableEditorPr
     return <p style={{ color: "#888" }}>{dict.empty}</p>;
   }
 
+  const columnCount = Math.max(headers.length, ...rows.map((row) => row.length));
+
   return (
     <div>
+      <p style={{ color: "#666" }}>{dict.summary(totalRowCount, columnCount)}</p>
       {truncated && (
         <p style={{ color: "#b8860b" }}>{dict.truncated(rows.length, totalRowCount)}</p>
       )}

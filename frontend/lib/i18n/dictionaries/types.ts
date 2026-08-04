@@ -122,6 +122,7 @@ export interface Dictionary {
     };
     csv: {
       empty: string;
+      summary: (rows: number, columns: number) => string;
       truncated: (shown: number, total: number) => string;
       noRows: string;
     };

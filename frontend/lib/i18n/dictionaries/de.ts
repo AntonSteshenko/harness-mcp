@@ -126,6 +126,7 @@ export const de: Dictionary = {
     },
     csv: {
       empty: "Diese Datei ist leer.",
+      summary: (rows, columns) => `${rows.toLocaleString()} Zeilen × ${columns.toLocaleString()} Spalten.`,
       truncated: (shown, total) => `${shown.toLocaleString()} von ${total.toLocaleString()} Zeilen werden angezeigt.`,
       noRows: "Keine Datenzeilen.",
     },

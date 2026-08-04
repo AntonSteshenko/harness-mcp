@@ -126,6 +126,7 @@ export const fr: Dictionary = {
     },
     csv: {
       empty: "Ce fichier est vide.",
+      summary: (rows, columns) => `${rows.toLocaleString()} lignes × ${columns.toLocaleString()} colonnes.`,
       truncated: (shown, total) => `Affichage de ${shown.toLocaleString()} lignes sur ${total.toLocaleString()}.`,
       noRows: "Aucune ligne de données.",
     },
