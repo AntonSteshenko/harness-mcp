@@ -3,6 +3,7 @@ import { registerTools } from "@/lib/mcp-tools";
 import { registerEngineTools } from "@/lib/mcp-tools/engineTools";
 import { registerInboxTools } from "@/lib/mcp-tools/inboxTools";
 import { registerMessagingTools } from "@/lib/mcp-tools/messagingTools";
+import { getDisabledTools } from "@/lib/mcp-tools/store";
 import { registerTreeTools } from "@/lib/mcp-tools/treeTools";
 import { verifyPersonalAccessToken } from "@/lib/oauth/personalAccessTokens";
 import { verifyAccessToken } from "@/lib/oauth/tokens";
@@ -18,11 +19,12 @@ const serverInfo = {
 
 const handler = createMcpHandler(
   async (server) => {
-    await registerTools(server);
-    await registerEngineTools(server);
-    await registerMessagingTools(server);
-    await registerInboxTools(server);
-    await registerTreeTools(server);
+    const disabledTools = await getDisabledTools();
+    await registerTools(server, disabledTools);
+    await registerEngineTools(server, disabledTools);
+    await registerMessagingTools(server, disabledTools);
+    await registerInboxTools(server, disabledTools);
+    await registerTreeTools(server, disabledTools);
   },
   {
     serverInfo,

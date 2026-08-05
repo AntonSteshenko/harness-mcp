@@ -1,5 +1,6 @@
 import { DeleteObjectsCommand, ListObjectsV2Command, PutObjectCommand } from "@aws-sdk/client-s3";
 import { OAUTH_PREFIX } from "@/lib/oauth/store";
+import { TOOLS_PREFIX } from "@/lib/mcp-tools/store";
 import { BUCKET, s3Client } from "./client";
 import { alreadyExists, notFound, typeMismatch, wrapStorageError } from "./errors";
 import { move } from "./move";
@@ -53,7 +54,13 @@ export async function listDirectory(path: string): Promise<{ path: string } & Di
     }
 
     const files = (result.Contents ?? [])
-      .filter((obj) => obj.Key && obj.Key !== dirKey && !obj.Key.startsWith(OAUTH_PREFIX)) // exclude the directory's own marker object and reserved OAuth state
+      .filter(
+        (obj) =>
+          obj.Key &&
+          obj.Key !== dirKey &&
+          !obj.Key.startsWith(OAUTH_PREFIX) &&
+          !obj.Key.startsWith(TOOLS_PREFIX),
+      ) // exclude the directory's own marker object and reserved OAuth/tool-status state
       .map((obj) => ({
         path: obj.Key as string,
         size: obj.Size ?? 0,
@@ -61,7 +68,7 @@ export async function listDirectory(path: string): Promise<{ path: string } & Di
       }));
 
     const directories = (result.CommonPrefixes ?? [])
-      .filter((p) => p.Prefix && p.Prefix !== OAUTH_PREFIX)
+      .filter((p) => p.Prefix && p.Prefix !== OAUTH_PREFIX && p.Prefix !== TOOLS_PREFIX)
       .map((p) => ({ path: p.Prefix as string }));
 
     return { path, files, directories };

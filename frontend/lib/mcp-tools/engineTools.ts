@@ -72,10 +72,11 @@ const ENGINE_TOOLS: EngineToolDefinition[] = [
 ];
 
 /** Registers every MCP tool that exposes engine/business-setup content (spec 016). */
-export async function registerEngineTools(server: McpServer): Promise<void> {
+export async function registerEngineTools(server: McpServer, disabledTools: ReadonlySet<string>): Promise<void> {
   for (const tool of ENGINE_TOOLS) {
     registerGatedTool(
       server,
+      disabledTools,
       tool.name,
       { title: tool.title, description: tool.description, inputSchema: {} },
       async () => textResult(ENGINE_CONTENT[tool.content]),

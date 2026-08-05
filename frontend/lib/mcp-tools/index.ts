@@ -13,11 +13,12 @@ import { registerGatedTool } from "./toolGate";
  * story (US1: create_file/read_file/delete_file, US2: directory tools,
  * US3: update_file/move).
  */
-export async function registerTools(server: McpServer): Promise<void> {
+export async function registerTools(server: McpServer, disabledTools: ReadonlySet<string>): Promise<void> {
   const framing = await getBootstrapFraming();
 
   registerGatedTool(
     server,
+    disabledTools,
     "create_file",
     {
       title: "Create File",
@@ -42,6 +43,7 @@ export async function registerTools(server: McpServer): Promise<void> {
 
   registerGatedTool(
     server,
+    disabledTools,
     "read_file",
     {
       title: "Read File",
@@ -64,6 +66,7 @@ export async function registerTools(server: McpServer): Promise<void> {
 
   registerGatedTool(
     server,
+    disabledTools,
     "delete_file",
     {
       title: "Delete File",
@@ -88,6 +91,7 @@ export async function registerTools(server: McpServer): Promise<void> {
 
   registerGatedTool(
     server,
+    disabledTools,
     "create_directory",
     {
       title: "Create Directory",
@@ -111,6 +115,7 @@ export async function registerTools(server: McpServer): Promise<void> {
 
   registerGatedTool(
     server,
+    disabledTools,
     "list_directory",
     {
       title: "List Directory",
@@ -134,6 +139,7 @@ export async function registerTools(server: McpServer): Promise<void> {
 
   registerGatedTool(
     server,
+    disabledTools,
     "delete_directory",
     {
       title: "Delete Directory",
@@ -159,6 +165,7 @@ export async function registerTools(server: McpServer): Promise<void> {
 
   registerGatedTool(
     server,
+    disabledTools,
     "update_file",
     {
       title: "Update File",
@@ -183,6 +190,7 @@ export async function registerTools(server: McpServer): Promise<void> {
 
   registerGatedTool(
     server,
+    disabledTools,
     "move",
     {
       title: "Move / Rename",

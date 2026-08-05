@@ -169,13 +169,23 @@ export const it: Dictionary = {
   },
   tools: {
     title: "Tool MCP",
-    description: "Tutti i tool che questo server MCP può offrire, e se sono attualmente attivi o disattivati (MCP_DISABLED_TOOLS).",
+    description: "Tutti i tool che questo server MCP può offrire, se sono attualmente attivi o disattivati, e un modo per cambiarlo.",
     name: "Tool",
     group: "Gruppo",
     status: "Stato",
     active: "attivo",
     disabled: "disattivato",
     signOut: "Disconnetti",
+    disableAction: "Disattiva",
+    enableAction: "Attiva",
+    confirmTitle: "Conferma la modifica",
+    confirmPendingChange: (name, to) => `Stai per impostare "${name}" su ${to}.`,
+    confirmButton: "Conferma",
+    cancelButton: "Annulla",
+    warningNotice:
+      "Le sessioni degli assistenti AI già connesse prima di questa modifica potrebbero continuare a usare il vecchio elenco di tool finché non si riconnettono o lo richiedono di nuovo — per loro l'effetto non è istantaneo.",
+    changedBanner: (name, to) => `"${name}" ora è ${to}.`,
+    changeFailed: (message) => `Impossibile applicare la modifica: ${message}`,
   },
   oauth: {
     login: {

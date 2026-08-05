@@ -7,11 +7,12 @@ import { registerGatedTool } from "./toolGate";
 const INBOX_PATH = "data/inbox.md";
 
 /** Registers the get_inbox MCP tool (spec 020) — a fixed-path shortcut over read_file. */
-export async function registerInboxTools(server: McpServer): Promise<void> {
+export async function registerInboxTools(server: McpServer, disabledTools: ReadonlySet<string>): Promise<void> {
   const framing = await getBootstrapFraming();
 
   registerGatedTool(
     server,
+    disabledTools,
     "get_inbox",
     {
       title: "Get Inbox",

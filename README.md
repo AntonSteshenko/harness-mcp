@@ -87,7 +87,7 @@ The repo-root `docker-compose.yml`/MinIO setup above is only for local developme
 **Deployed serverless (e.g. Vercel):**
 
 1. Import the repo and set the project's **Root Directory** to `frontend/` (see [specs/006-frontend-folder-structure](specs/006-frontend-folder-structure/spec.md)) — this repo has no root-level `package.json`, only `frontend/` is a deployable Next.js app.
-2. In the platform's environment variables UI (not a `.env` file — those aren't deployed), set the same variables listed in [`frontend/.env.example`](frontend/.env.example): `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_BUCKET`, `S3_FORCE_PATH_STYLE`, `OAUTH_OWNER_USERNAME`, `OAUTH_OWNER_PASSWORD`, and optionally `MCP_BOOTSTRAP_PATH`/`OS_NAME`/`MCP_DISABLED_TOOLS`.
+2. In the platform's environment variables UI (not a `.env` file — those aren't deployed), set the same variables listed in [`frontend/.env.example`](frontend/.env.example): `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_BUCKET`, `S3_FORCE_PATH_STYLE`, `OAUTH_OWNER_USERNAME`, `OAUTH_OWNER_PASSWORD`, and optionally `MCP_BOOTSTRAP_PATH`/`OS_NAME`.
 3. Deploy. Because all app state (files, OAuth clients, personal access tokens) lives in the external bucket rather than on local disk, the deployment is stateless and safe to run as ephemeral serverless functions — no persistent volume or database needed.
 4. Once live, `/mcp` and `/files` work exactly as in local dev, just at your deployment URL instead of `http://localhost:3000`.
 
@@ -119,11 +119,9 @@ This exposes the MCP endpoint (Streamable HTTP) at `http://localhost:3000/mcp`. 
 
 Optionally set `MCP_BOOTSTRAP_PATH` in `frontend/.env.local` (e.g. `MCP_BOOTSTRAP_PATH=assistant/AGENTS.md`) to a Markdown file already in storage. When set, every tool's description shown to a connecting client is prepended with guidance generated from that file's optional `<!-- mcp-context: ... -->` and `<!-- mcp-triggers: ... -->` HTML-comment markers — telling the client what the storage is for, when to use it, and to read the bootstrap file first. Edits to the file are picked up within about a minute, with no restart or redeploy. If the variable is unset, the file is missing, or neither marker is present, every tool simply falls back to its plain original description — see [specs/010-dynamic-tool-descriptions/quickstart.md](specs/010-dynamic-tool-descriptions/quickstart.md) for a runnable walkthrough.
 
-### Disabling individual tools
+### Managing which tools are active
 
-Optionally set `MCP_DISABLED_TOOLS` in `frontend/.env.local` to a comma-separated list of tool names (e.g. `MCP_DISABLED_TOOLS=send_email,send_telegram_message`) to stop the server from registering them at all — they disappear from `tools/list` and calling one by name fails exactly like calling a tool the server has never heard of. Unset or empty means every tool stays enabled, the default. Takes effect on the next server start. See [specs/023-mcp-tool-toggle/quickstart.md](specs/023-mcp-tool-toggle/quickstart.md) for a runnable walkthrough and the full list of disable-able tool names.
-
-Sign in as the owner and open [`/tools`](http://localhost:3000/tools) to see every tool's current active/disabled status at a glance, without reading `.env.local` — see [specs/024-tools-status-page/quickstart.md](specs/024-tools-status-page/quickstart.md).
+Sign in as the owner and open [`/tools`](http://localhost:3000/tools) to see every tool's current active/disabled status, and to disable or re-enable any of them right there — no environment variable, no restart. A change is confirmed explicitly (naming the tool and the new status) before it's applied, and takes effect on the very next MCP request; the page also warns that AI assistant sessions already connected before the change may not see it until they reconnect. See [specs/025-manage-tools-page/quickstart.md](specs/025-manage-tools-page/quickstart.md) for a runnable walkthrough. (Earlier versions of this app used an `MCP_DISABLED_TOOLS` environment variable for this — spec 023-mcp-tool-toggle — which this page's storage-backed mechanism has superseded; that variable is no longer read.)
 
 ### Connecting AI assistants (ChatGPT, Claude, etc.) via OAuth
 

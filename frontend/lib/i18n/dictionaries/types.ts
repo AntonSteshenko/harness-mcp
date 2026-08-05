@@ -171,6 +171,15 @@ export interface Dictionary {
     active: string;
     disabled: string;
     signOut: string;
+    disableAction: string;
+    enableAction: string;
+    confirmTitle: string;
+    confirmPendingChange: (name: string, to: string) => string;
+    confirmButton: string;
+    cancelButton: string;
+    warningNotice: string;
+    changedBanner: (name: string, to: string) => string;
+    changeFailed: (message: string) => string;
   };
   oauth: {
     login: {

@@ -36,9 +36,10 @@ interface EmailRecipientResult {
 }
 
 /** Registers the send_email and send_telegram_message MCP tools (spec 017). */
-export async function registerMessagingTools(server: McpServer): Promise<void> {
+export async function registerMessagingTools(server: McpServer, disabledTools: ReadonlySet<string>): Promise<void> {
   registerGatedTool(
     server,
+    disabledTools,
     "send_email",
     {
       title: "Send Email",
@@ -93,6 +94,7 @@ export async function registerMessagingTools(server: McpServer): Promise<void> {
 
   registerGatedTool(
     server,
+    disabledTools,
     "send_telegram_message",
     {
       title: "Send Telegram Message",
