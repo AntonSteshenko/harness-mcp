@@ -70,6 +70,16 @@ export const ru: Dictionary = {
       reloadNote: "После применения перезагрузите эту страницу.",
     },
   },
+  dashboard: {
+    title: "Панель управления",
+    description: "Всё, что предлагает этот MCP-сервер, в одном месте.",
+    links: {
+      files: "Файлы",
+      tools: "Инструменты",
+      settingsConnectedApps: "Настройки — Подключённые приложения",
+      settingsPersonalAccessTokens: "Настройки — Персональные токены доступа",
+    },
+  },
   editor: {
     tree: {
       loading: "Загрузка…",

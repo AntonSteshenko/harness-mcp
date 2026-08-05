@@ -67,6 +67,16 @@ export interface Dictionary {
       reloadNote: string;
     };
   };
+  dashboard: {
+    title: string;
+    description: string;
+    links: {
+      files: string;
+      tools: string;
+      settingsConnectedApps: string;
+      settingsPersonalAccessTokens: string;
+    };
+  };
   editor: {
     tree: {
       loading: string;

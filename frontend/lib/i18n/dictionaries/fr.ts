@@ -70,6 +70,16 @@ export const fr: Dictionary = {
       reloadNote: "Une fois appliqué, rechargez cette page.",
     },
   },
+  dashboard: {
+    title: "Tableau de bord",
+    description: "Tout ce que propose ce serveur MCP, au même endroit.",
+    links: {
+      files: "Fichiers",
+      tools: "Outils",
+      settingsConnectedApps: "Paramètres — Applications connectées",
+      settingsPersonalAccessTokens: "Paramètres — Jetons d'accès personnels",
+    },
+  },
   editor: {
     tree: {
       loading: "Chargement…",
