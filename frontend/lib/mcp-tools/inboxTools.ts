@@ -2,6 +2,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { readFile } from "@/lib/storage/files";
 import { buildEntryDescription, getBootstrapFraming } from "./bootstrap";
 import { errorResult, ok } from "./result";
+import { registerGatedTool } from "./toolGate";
 
 const INBOX_PATH = "data/inbox.md";
 
@@ -9,7 +10,8 @@ const INBOX_PATH = "data/inbox.md";
 export async function registerInboxTools(server: McpServer): Promise<void> {
   const framing = await getBootstrapFraming();
 
-  server.registerTool(
+  registerGatedTool(
+    server,
     "get_inbox",
     {
       title: "Get Inbox",

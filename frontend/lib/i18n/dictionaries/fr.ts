@@ -167,6 +167,16 @@ export const fr: Dictionary = {
       backLink: "Retour aux personal access tokens",
     },
   },
+  tools: {
+    title: "Outils MCP",
+    description: "Tous les outils que ce serveur MCP peut proposer, et s'ils sont actuellement actifs ou désactivés (MCP_DISABLED_TOOLS).",
+    name: "Outil",
+    group: "Groupe",
+    status: "Statut",
+    active: "actif",
+    disabled: "désactivé",
+    signOut: "Se déconnecter",
+  },
   oauth: {
     login: {
       title: "Se connecter",

@@ -9,6 +9,7 @@ import { sendTelegramMessage } from "@/lib/messaging/telegram";
 import { isValidEmailAddress, isValidMessageLength } from "@/lib/messaging/validation";
 import { z } from "zod";
 import { ok } from "./result";
+import { registerGatedTool } from "./toolGate";
 
 /**
  * Wraps a MessagingError as an MCP `isError` result with the same
@@ -36,7 +37,8 @@ interface EmailRecipientResult {
 
 /** Registers the send_email and send_telegram_message MCP tools (spec 017). */
 export async function registerMessagingTools(server: McpServer): Promise<void> {
-  server.registerTool(
+  registerGatedTool(
+    server,
     "send_email",
     {
       title: "Send Email",
@@ -89,7 +91,8 @@ export async function registerMessagingTools(server: McpServer): Promise<void> {
     },
   );
 
-  server.registerTool(
+  registerGatedTool(
+    server,
     "send_telegram_message",
     {
       title: "Send Telegram Message",

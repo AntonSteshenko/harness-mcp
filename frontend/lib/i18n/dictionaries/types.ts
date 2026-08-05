@@ -162,6 +162,16 @@ export interface Dictionary {
       backLink: string;
     };
   };
+  tools: {
+    title: string;
+    description: string;
+    name: string;
+    group: string;
+    status: string;
+    active: string;
+    disabled: string;
+    signOut: string;
+  };
   oauth: {
     login: {
       title: string;

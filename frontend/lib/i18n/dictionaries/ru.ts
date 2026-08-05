@@ -167,6 +167,16 @@ export const ru: Dictionary = {
       backLink: "Назад к personal access token",
     },
   },
+  tools: {
+    title: "MCP-инструменты",
+    description: "Все инструменты, которые может предоставить этот MCP-сервер, и активны ли они сейчас или отключены (MCP_DISABLED_TOOLS).",
+    name: "Инструмент",
+    group: "Группа",
+    status: "Статус",
+    active: "активен",
+    disabled: "отключён",
+    signOut: "Выйти",
+  },
   oauth: {
     login: {
       title: "Вход",

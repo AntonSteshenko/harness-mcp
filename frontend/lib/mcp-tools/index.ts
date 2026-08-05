@@ -5,6 +5,7 @@ import { createFile, deleteFile, readFile, updateFile } from "@/lib/storage/file
 import { move } from "@/lib/storage/move";
 import { buildEntryDescription, buildWriteDescription, getBootstrapFraming } from "./bootstrap";
 import { errorResult, ok } from "./result";
+import { registerGatedTool } from "./toolGate";
 
 /**
  * Registers every MCP tool this server exposes (contracts/mcp-tools.md) onto
@@ -15,7 +16,8 @@ import { errorResult, ok } from "./result";
 export async function registerTools(server: McpServer): Promise<void> {
   const framing = await getBootstrapFraming();
 
-  server.registerTool(
+  registerGatedTool(
+    server,
     "create_file",
     {
       title: "Create File",
@@ -38,7 +40,8 @@ export async function registerTools(server: McpServer): Promise<void> {
     },
   );
 
-  server.registerTool(
+  registerGatedTool(
+    server,
     "read_file",
     {
       title: "Read File",
@@ -59,7 +62,8 @@ export async function registerTools(server: McpServer): Promise<void> {
     },
   );
 
-  server.registerTool(
+  registerGatedTool(
+    server,
     "delete_file",
     {
       title: "Delete File",
@@ -82,7 +86,8 @@ export async function registerTools(server: McpServer): Promise<void> {
     },
   );
 
-  server.registerTool(
+  registerGatedTool(
+    server,
     "create_directory",
     {
       title: "Create Directory",
@@ -104,7 +109,8 @@ export async function registerTools(server: McpServer): Promise<void> {
     },
   );
 
-  server.registerTool(
+  registerGatedTool(
+    server,
     "list_directory",
     {
       title: "List Directory",
@@ -126,7 +132,8 @@ export async function registerTools(server: McpServer): Promise<void> {
     },
   );
 
-  server.registerTool(
+  registerGatedTool(
+    server,
     "delete_directory",
     {
       title: "Delete Directory",
@@ -150,7 +157,8 @@ export async function registerTools(server: McpServer): Promise<void> {
     },
   );
 
-  server.registerTool(
+  registerGatedTool(
+    server,
     "update_file",
     {
       title: "Update File",
@@ -173,7 +181,8 @@ export async function registerTools(server: McpServer): Promise<void> {
     },
   );
 
-  server.registerTool(
+  registerGatedTool(
+    server,
     "move",
     {
       title: "Move / Rename",

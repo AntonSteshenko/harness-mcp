@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import { registerGatedTool } from "./toolGate";
 
 /**
  * English-only, code-bundled engine content (spec 016) — never written into
@@ -73,7 +74,8 @@ const ENGINE_TOOLS: EngineToolDefinition[] = [
 /** Registers every MCP tool that exposes engine/business-setup content (spec 016). */
 export async function registerEngineTools(server: McpServer): Promise<void> {
   for (const tool of ENGINE_TOOLS) {
-    server.registerTool(
+    registerGatedTool(
+      server,
       tool.name,
       { title: tool.title, description: tool.description, inputSchema: {} },
       async () => textResult(ENGINE_CONTENT[tool.content]),

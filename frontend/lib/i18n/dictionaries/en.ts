@@ -168,6 +168,16 @@ export const en: Dictionary = {
       backLink: "Back to personal access tokens",
     },
   },
+  tools: {
+    title: "MCP tools",
+    description: "Every tool this MCP server can offer, and whether it's currently active or disabled (MCP_DISABLED_TOOLS).",
+    name: "Tool",
+    group: "Group",
+    status: "Status",
+    active: "active",
+    disabled: "disabled",
+    signOut: "Sign out",
+  },
   oauth: {
     login: {
       title: "Sign in",

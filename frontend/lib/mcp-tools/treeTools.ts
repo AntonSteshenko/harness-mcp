@@ -4,12 +4,14 @@ import { readFile } from "@/lib/storage/files";
 import { buildSnippet, matchesName, walkTree } from "@/lib/storage/tree";
 import { buildEntryDescription, getBootstrapFraming } from "./bootstrap";
 import { errorResult, ok } from "./result";
+import { registerGatedTool } from "./toolGate";
 
 /** Registers the MCP tree-search tools (spec 022): list_directory_tree, find_files_by_name, search_file_content. */
 export async function registerTreeTools(server: McpServer): Promise<void> {
   const framing = await getBootstrapFraming();
 
-  server.registerTool(
+  registerGatedTool(
+    server,
     "list_directory_tree",
     {
       title: "List Directory Tree",
@@ -33,7 +35,8 @@ export async function registerTreeTools(server: McpServer): Promise<void> {
     },
   );
 
-  server.registerTool(
+  registerGatedTool(
+    server,
     "find_files_by_name",
     {
       title: "Find Files By Name",
@@ -62,7 +65,8 @@ export async function registerTreeTools(server: McpServer): Promise<void> {
     },
   );
 
-  server.registerTool(
+  registerGatedTool(
+    server,
     "search_file_content",
     {
       title: "Search File Content",
