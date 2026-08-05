@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
   const form = await request.formData();
   const username = form.get("username")?.toString() ?? "";
   const password = form.get("password")?.toString() ?? "";
-  const continueUrl = form.get("continue")?.toString() || "/settings/connected-apps";
+  const continueUrl = form.get("continue")?.toString() || "/";
 
   const loginUrl = new URL("/oauth/login", request.url);
   loginUrl.searchParams.set("continue", continueUrl);

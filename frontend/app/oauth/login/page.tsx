@@ -22,7 +22,7 @@ export default async function LoginPage({
   searchParams: Promise<{ continue?: string; error?: string }>;
 }) {
   const params = await searchParams;
-  const continueUrl = params.continue ?? "/settings/connected-apps";
+  const continueUrl = params.continue ?? "/";
   const dict = getDictionary(await resolveLanguage()).oauth.login;
 
   const errorMessages: Record<string, string> = {
