@@ -1,7 +1,9 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
+import { verifyPersonalAccessToken } from "./personalAccessTokens";
 import { getCurrentGeneration } from "./sessionSecret";
+import { verifyAccessToken } from "./tokens";
 
 /**
  * The owner's sign-in session — gates the consent-approval action, the
@@ -94,28 +96,50 @@ export async function hasActiveOwnerSession(): Promise<boolean> {
 }
 
 /**
+ * Whether the current request's `Authorization` header carries a still-valid
+ * OAuth access token or personal access token — tried in that order, the
+ * same fallback chain already used by the MCP endpoint (spec 013). Lets an
+ * external application call the file API server-to-server with a token
+ * instead of a browser session (spec 027).
+ */
+async function hasValidBearerToken(): Promise<boolean> {
+  const headerStore = await headers();
+  const authHeader = headerStore.get("authorization");
+  if (!authHeader?.startsWith("Bearer ")) return false;
+
+  const token = authHeader.slice("Bearer ".length);
+  const authInfo = (await verifyAccessToken(token)) ?? (await verifyPersonalAccessToken(token));
+  return authInfo !== undefined;
+}
+
+/**
  * Guard for API route handlers: returns a 401 response when there's no
- * active owner session, or `null` when the caller may proceed — renewing
- * the session cookie along the way if it's more than halfway to expiry, so
- * an actively-working owner is never cut off mid-task (FR-007). Used by
- * the editor's file endpoints (spec 009).
+ * active owner session and no valid bearer token, or `null` when the caller
+ * may proceed — renewing the session cookie along the way if it's more than
+ * halfway to expiry, so an actively-working owner is never cut off mid-task
+ * (FR-007). Used by the editor's file endpoints (spec 009).
  *
- * Renewal only happens here, not in `hasActiveOwnerSession()`: this
- * function is only ever called from Route Handlers, where setting a cookie
- * is valid; `hasActiveOwnerSession()` is also called directly from plain
- * Server Components (e.g. `app/files/layout.tsx`), where Next.js forbids
- * mutating cookies during render.
+ * The bearer-token fallback (spec 027) is only checked when there's no
+ * valid session cookie, so cookie-authenticated requests are unaffected and
+ * pay no extra token-verification cost.
+ *
+ * Renewal only happens for the cookie path, not in `hasActiveOwnerSession()`:
+ * this function is only ever called from Route Handlers, where setting a
+ * cookie is valid; `hasActiveOwnerSession()` is also called directly from
+ * plain Server Components (e.g. `app/files/layout.tsx`), where Next.js
+ * forbids mutating cookies during render.
  */
 export async function requireOwnerSession(): Promise<NextResponse | null> {
   const payload = await readSessionPayload();
-  if (!payload) {
-    return NextResponse.json({ code: "unauthorized", message: "Sign in required" }, { status: 401 });
+  if (payload) {
+    const elapsed = Date.now() - new Date(payload.issuedAt).getTime();
+    if (elapsed > SESSION_TTL_MS / 2) {
+      await issueSessionCookie(payload.generation);
+    }
+    return null;
   }
 
-  const elapsed = Date.now() - new Date(payload.issuedAt).getTime();
-  if (elapsed > SESSION_TTL_MS / 2) {
-    await issueSessionCookie(payload.generation);
-  }
+  if (await hasValidBearerToken()) return null;
 
-  return null;
+  return NextResponse.json({ code: "unauthorized", message: "Sign in required" }, { status: 401 });
 }
