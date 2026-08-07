@@ -22,7 +22,8 @@ export default function EditorApp({ osName, language }: { osName: string; langua
   // The open file's path is the URL's own path (spec 018 FR-012), not local
   // state, so it can be deep-linked, refreshed, shared, and stepped through
   // via back/forward.
-  const selectedPath = pathname === "/files" ? null : pathname.slice("/files/".length);
+  const selectedPath =
+    pathname === "/files" ? null : pathname.slice("/files/".length).split("/").map(decodeURIComponent).join("/");
   const [isDirty, setIsDirty] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
