@@ -97,7 +97,7 @@ export const de: Dictionary = {
       invalidName: (name) => `„${name}" darf kein „/" enthalten — geben Sie einen einfachen Namen ein.`,
       nothingToUpload: "Nichts zum Hochladen.",
       nothingToUploadFiltered: (skipped) =>
-        `Nichts zum Hochladen — keine der ${skipped} ausgewählten Datei(en) ist eine Markdown-Datei (.md).`,
+        `Nichts zum Hochladen — keine der ${skipped} ausgewählten Datei(en) hat einen unterstützten Typ.`,
       overwriteFilesConfirm: (names) => `Dies überschreibt vorhandene Datei(en): ${names}. Fortfahren?`,
       uploadFailed: (message) => `Hochladen fehlgeschlagen: ${message}`,
       uploadFailedLabel: "Hochladen fehlgeschlagen",
@@ -130,6 +130,7 @@ export const de: Dictionary = {
       discardConfirm: "Sie haben nicht gespeicherte Änderungen. Verwerfen und eine andere Datei öffnen?",
       loadFailed: "Datei konnte nicht geladen werden",
       openedPathIsFolder: (path) => `„${path}" ist ein Ordner, keine Datei.`,
+      openOrDownload: "Öffnen / Herunterladen",
       externalChangeMessage: "Diese Datei wurde extern geändert.",
       externalChangeReload: "Externe Version laden",
       externalChangeKeepMine: "Meine Version behalten",

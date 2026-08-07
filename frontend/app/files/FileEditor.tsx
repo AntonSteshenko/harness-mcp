@@ -292,7 +292,18 @@ export function FileEditor({ path, onDirtyChange, dict, csvDict }: FileEditorPro
     return <p style={{ color: "#888" }}>{dict.loading(path)}</p>;
   }
   if (state.status === "unsupported") {
-    return <p style={{ color: "#888" }}>{state.message}</p>;
+    return (
+      <div>
+        <p style={{ color: "#888" }}>{state.message}</p>
+        <a
+          href={`/api/file/download?path=${encodeURIComponent(path)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {dict.openOrDownload}
+        </a>
+      </div>
+    );
   }
   if (state.status === "folder") {
     return <p style={{ color: "#888" }}>{state.message}</p>;

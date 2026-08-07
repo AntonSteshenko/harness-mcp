@@ -141,8 +141,9 @@ export async function deleteDirectory(
 
 /**
  * Walks the subtree under `path` breadth-first (composing `listDirectory`)
- * and returns every file whose path ends in `.md` (case-insensitive) at any
- * depth. Used by folder download (contracts/api-routes.md, research.md §2).
+ * and returns every file at any depth. Used by folder download
+ * (contracts/api-routes.md, research.md §2; broadened from a `.md`-only
+ * filter to every file type in spec 028 research.md §6, FR-011).
  * Not_found if `path` doesn't exist; type_mismatch if `path` is a file.
  */
 export async function listFilesRecursive(
@@ -155,11 +156,7 @@ export async function listFilesRecursive(
     const current = pending.shift() as string;
     const { files, directories } = await listDirectory(current);
 
-    for (const file of files) {
-      if (file.path.toLowerCase().endsWith(".md")) {
-        results.push(file);
-      }
-    }
+    results.push(...files);
     for (const dir of directories) {
       pending.push(dir.path);
     }

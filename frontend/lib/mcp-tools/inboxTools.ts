@@ -26,7 +26,8 @@ export async function registerInboxTools(server: McpServer, disabledTools: Reado
     },
     async () => {
       try {
-        return ok(await readFile(INBOX_PATH));
+        const result = await readFile(INBOX_PATH);
+        return ok({ ...result, content: result.content.toString("utf-8") });
       } catch (err) {
         return errorResult(err);
       }

@@ -126,6 +126,7 @@ export interface Dictionary {
       discardConfirm: string;
       loadFailed: string;
       openedPathIsFolder: (path: string) => string;
+      openOrDownload: string;
       externalChangeMessage: string;
       externalChangeReload: string;
       externalChangeKeepMine: string;

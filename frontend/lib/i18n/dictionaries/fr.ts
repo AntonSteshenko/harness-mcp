@@ -97,7 +97,7 @@ export const fr: Dictionary = {
       invalidName: (name) => `« ${name} » ne peut pas contenir « / » — saisissez un nom simple.`,
       nothingToUpload: "Rien à importer.",
       nothingToUploadFiltered: (skipped) =>
-        `Rien à importer — aucun des ${skipped} fichier(s) sélectionné(s) n'est un fichier Markdown (.md).`,
+        `Rien à importer — aucun des ${skipped} fichier(s) sélectionné(s) n'est d'un type pris en charge.`,
       overwriteFilesConfirm: (names) => `Cela écrasera les fichiers existants : ${names}. Continuer ?`,
       uploadFailed: (message) => `Échec de l'import : ${message}`,
       uploadFailedLabel: "Échec de l'import",
@@ -130,6 +130,7 @@ export const fr: Dictionary = {
       discardConfirm: "Vous avez des modifications non enregistrées. Les abandonner et ouvrir un autre fichier ?",
       loadFailed: "Impossible de charger le fichier",
       openedPathIsFolder: (path) => `« ${path} » est un dossier, pas un fichier.`,
+      openOrDownload: "Ouvrir / Télécharger",
       externalChangeMessage: "Ce fichier a été modifié en externe.",
       externalChangeReload: "Recharger la version externe",
       externalChangeKeepMine: "Garder la mienne",

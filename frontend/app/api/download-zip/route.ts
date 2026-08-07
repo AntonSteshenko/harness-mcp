@@ -10,6 +10,9 @@ const STATUS_BY_CODE: Record<StorageError["code"], number> = {
   type_mismatch: 404,
   already_exists: 409,
   storage_unreachable: 502,
+  unsupported_type: 415,
+  too_large: 413,
+  invalid_content: 400,
 };
 
 function baseName(path: string): string {
@@ -19,9 +22,13 @@ function baseName(path: string): string {
 }
 
 /**
- * Zips every .md file under `path` (any depth) for download (FR-007-FR-009,
- * contracts/api-routes.md). Built fully in memory with jszip — see
- * research.md §1 for why not a streaming archiver at this feature's scale.
+ * Zips every file under `path` (any depth) for download (FR-007-FR-009,
+ * contracts/api-routes.md; broadened from a `.md`-only filter to every file
+ * type in spec 028 research.md §6, FR-011). Built fully in memory with
+ * jszip — see research.md §1 for why not a streaming archiver at this
+ * feature's scale. Each file's raw `Buffer` content (from the now
+ * binary-safe `readFile`, spec 028 research.md §2) is added as-is, so
+ * binary files survive the zip round-trip byte-for-byte (FR-003).
  */
 export async function GET(request: NextRequest) {
   const authError = await requireOwnerSession();
@@ -34,7 +41,7 @@ export async function GET(request: NextRequest) {
 
     if (files.length === 0) {
       return NextResponse.json(
-        { code: "empty", message: `"${path || "/"}" has no Markdown (.md) files to download` },
+        { code: "empty", message: `"${path || "/"}" has no files to download` },
         { status: 404 },
       );
     }

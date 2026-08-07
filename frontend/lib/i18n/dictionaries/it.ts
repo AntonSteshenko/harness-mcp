@@ -97,7 +97,7 @@ export const it: Dictionary = {
       invalidName: (name) => `"${name}" non può contenere "/" — inserisci un nome semplice.`,
       nothingToUpload: "Niente da caricare.",
       nothingToUploadFiltered: (skipped) =>
-        `Niente da caricare — nessuno dei ${skipped} file selezionati è un file Markdown (.md).`,
+        `Niente da caricare — nessuno dei ${skipped} file selezionati è di un tipo supportato.`,
       overwriteFilesConfirm: (names) => `Questo sovrascriverà i file esistenti: ${names}. Continuare?`,
       uploadFailed: (message) => `Caricamento non riuscito: ${message}`,
       uploadFailedLabel: "Caricamento non riuscito",
@@ -130,6 +130,7 @@ export const it: Dictionary = {
       discardConfirm: "Hai modifiche non salvate. Scartarle e aprire un altro file?",
       loadFailed: "Impossibile caricare il file",
       openedPathIsFolder: (path) => `"${path}" è una cartella, non un file.`,
+      openOrDownload: "Apri / Scarica",
       externalChangeMessage: "Questo file è stato modificato esternamente.",
       externalChangeReload: "Ricarica la versione esterna",
       externalChangeKeepMine: "Mantieni la mia",

@@ -97,7 +97,7 @@ export const es: Dictionary = {
       invalidName: (name) => `«${name}» no puede contener «/» — introduce un nombre simple.`,
       nothingToUpload: "Nada que subir.",
       nothingToUploadFiltered: (skipped) =>
-        `Nada que subir — ninguno de los ${skipped} archivo(s) seleccionado(s) es un archivo Markdown (.md).`,
+        `Nada que subir — ninguno de los ${skipped} archivo(s) seleccionado(s) es de un tipo compatible.`,
       overwriteFilesConfirm: (names) => `Esto sobrescribirá los archivos existentes: ${names}. ¿Continuar?`,
       uploadFailed: (message) => `Error al subir: ${message}`,
       uploadFailedLabel: "Error al subir",
@@ -130,6 +130,7 @@ export const es: Dictionary = {
       discardConfirm: "Tienes cambios sin guardar. ¿Descartarlos y abrir otro archivo?",
       loadFailed: "No se pudo cargar el archivo",
       openedPathIsFolder: (path) => `"${path}" es una carpeta, no un archivo.`,
+      openOrDownload: "Abrir / Descargar",
       externalChangeMessage: "Este archivo cambió externamente.",
       externalChangeReload: "Recargar la versión externa",
       externalChangeKeepMine: "Mantener la mía",

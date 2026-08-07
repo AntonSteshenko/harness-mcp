@@ -98,7 +98,7 @@ export const en: Dictionary = {
       invalidName: (name) => `"${name}" can't contain "/" — enter a plain name.`,
       nothingToUpload: "Nothing to upload.",
       nothingToUploadFiltered: (skipped) =>
-        `Nothing to upload — none of the ${skipped} selected file(s) are Markdown (.md) files.`,
+        `Nothing to upload — none of the ${skipped} selected file(s) are a supported type.`,
       overwriteFilesConfirm: (names) => `This will overwrite existing file(s): ${names}. Continue?`,
       uploadFailed: (message) => `Upload failed: ${message}`,
       uploadFailedLabel: "Upload failed",
@@ -131,6 +131,7 @@ export const en: Dictionary = {
       discardConfirm: "You have unsaved changes. Discard them and open a different file?",
       loadFailed: "Failed to load file",
       openedPathIsFolder: (path) => `"${path}" is a folder, not a file.`,
+      openOrDownload: "Open / Download",
       externalChangeMessage: "This file changed externally.",
       externalChangeReload: "Reload external version",
       externalChangeKeepMine: "Keep mine",

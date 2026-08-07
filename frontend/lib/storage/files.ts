@@ -10,6 +10,7 @@ import {
   normalizeFilePath,
 } from "./paths";
 import { isUnderTrash, trashDestinationFor } from "./trash";
+import { mimeTypeForPath } from "./fileTypes";
 
 export interface FileMetadata {
   path: string;
@@ -19,18 +20,25 @@ export interface FileMetadata {
    * file changed since it was last loaded (spec 019 research.md §3) —
    * compare it as an opaque string, never parse or reformat it. */
   etag: string;
+  /** MIME type recorded at upload time; falls back to extension-based
+   * inference for objects written before this field existed (spec 028
+   * research.md §3). */
+  contentType: string;
 }
 
 export interface FileContent extends FileMetadata {
-  content: string;
+  content: Buffer;
 }
 
 /**
  * Creates a file at `path`, overwriting it if a file already exists there.
  * Rejects with `already_exists` if a directory occupies `path` (FR-002, FR-012).
+ * `content` is raw bytes — never decoded/re-encoded as text, so binary
+ * uploads survive byte-for-byte (spec 028 FR-003).
  */
-export async function createFile(path: string, content: string): Promise<FileMetadata> {
+export async function createFile(path: string, content: Buffer, contentType?: string): Promise<FileMetadata> {
   const key = normalizeFilePath(path);
+  const resolvedContentType = contentType || mimeTypeForPath(path);
 
   try {
     if (await hasAnyObjectWithPrefix(normalizeDirectoryPath(key))) {
@@ -38,33 +46,39 @@ export async function createFile(path: string, content: string): Promise<FileMet
     }
 
     const result = await s3Client.send(
-      new PutObjectCommand({ Bucket: BUCKET, Key: key, Body: content }),
+      new PutObjectCommand({ Bucket: BUCKET, Key: key, Body: content, ContentType: resolvedContentType }),
     );
 
     return {
       path,
-      size: Buffer.byteLength(content),
+      size: content.byteLength,
       lastModified: new Date().toISOString(),
       etag: result.ETag ?? "",
+      contentType: resolvedContentType,
     };
   } catch (err) {
     throw wrapStorageError(err, `creating file "${path}"`);
   }
 }
 
-/** Reads the full content of the file at `path` (FR-003). */
+/** Reads the full content of the file at `path` (FR-003). Returns raw bytes;
+ * callers that need text (e.g. the editor's text-viewing path) decode
+ * explicitly after confirming the file is text-viewable (spec 028
+ * research.md §2, §4). */
 export async function readFile(path: string): Promise<FileContent> {
   const key = normalizeFilePath(path);
 
   try {
     const result = await s3Client.send(new GetObjectCommand({ Bucket: BUCKET, Key: key }));
-    const content = (await result.Body?.transformToString()) ?? "";
+    const bytes = (await result.Body?.transformToByteArray()) ?? new Uint8Array();
+    const content = Buffer.from(bytes);
     return {
       path,
       content,
-      size: result.ContentLength ?? Buffer.byteLength(content),
+      size: result.ContentLength ?? content.byteLength,
       lastModified: (result.LastModified ?? new Date()).toISOString(),
       etag: result.ETag ?? "",
+      contentType: result.ContentType || mimeTypeForPath(path),
     };
   } catch (err) {
     if (isNotFoundError(err)) {
@@ -82,8 +96,9 @@ export async function readFile(path: string): Promise<FileContent> {
  * overwrite only). Unlike `createFile`, requires the file to already exist:
  * `not_found` if missing; `type_mismatch` if `path` is a directory.
  */
-export async function updateFile(path: string, content: string): Promise<FileMetadata> {
+export async function updateFile(path: string, content: Buffer, contentType?: string): Promise<FileMetadata> {
   const key = normalizeFilePath(path);
+  const resolvedContentType = contentType || mimeTypeForPath(path);
 
   try {
     if (!(await headObjectExists(key))) {
@@ -93,12 +108,15 @@ export async function updateFile(path: string, content: string): Promise<FileMet
       throw notFound(path);
     }
 
-    const result = await s3Client.send(new PutObjectCommand({ Bucket: BUCKET, Key: key, Body: content }));
+    const result = await s3Client.send(
+      new PutObjectCommand({ Bucket: BUCKET, Key: key, Body: content, ContentType: resolvedContentType }),
+    );
     return {
       path,
-      size: Buffer.byteLength(content),
+      size: content.byteLength,
       lastModified: new Date().toISOString(),
       etag: result.ETag ?? "",
+      contentType: resolvedContentType,
     };
   } catch (err) {
     throw wrapStorageError(err, `updating file "${path}"`);
@@ -121,6 +139,7 @@ export async function getFileMetadata(path: string): Promise<FileMetadata> {
       size: result.ContentLength ?? 0,
       lastModified: (result.LastModified ?? new Date()).toISOString(),
       etag: result.ETag ?? "",
+      contentType: result.ContentType || mimeTypeForPath(path),
     };
   } catch (err) {
     if (isNotFoundError(err)) {

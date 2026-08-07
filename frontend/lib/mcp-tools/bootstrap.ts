@@ -55,7 +55,7 @@ async function readBootstrapMarkers(): Promise<BootstrapMarkers | null> {
 
   try {
     const { content } = await readFile(path);
-    return parseMarkers(content);
+    return parseMarkers(content.toString("utf-8"));
   } catch {
     return null;
   }

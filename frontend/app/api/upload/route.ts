@@ -2,17 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireOwnerSession } from "@/lib/oauth/session";
 import { createFile } from "@/lib/storage/files";
 import { normalizeFilePath } from "@/lib/storage/paths";
-import { StorageError } from "@/lib/storage/errors";
-
-interface UploadEntry {
-  relativePath?: string;
-  content?: string;
-}
-
-interface UploadRequestBody {
-  basePath?: string;
-  files?: UploadEntry[];
-}
+import { StorageError, tooLarge, unsupportedType } from "@/lib/storage/errors";
+import { isAllowedExtension, MAX_UPLOAD_BYTES, mimeTypeForPath } from "@/lib/storage/fileTypes";
 
 interface UploadResult {
   path: string;
@@ -20,49 +11,59 @@ interface UploadResult {
   message?: string;
 }
 
-function isMarkdownPath(path: string): boolean {
-  return path.toLowerCase().endsWith(".md");
+function extensionOf(path: string): string {
+  return path.split(".").pop() ?? "";
 }
 
 /**
- * Batch-creates .md files under `basePath` (FR-001-FR-006, contracts/api-routes.md).
- * Always responds 200 with a per-file outcome so one file's failure doesn't
- * discard the rest of the batch (Edge Cases).
+ * Batch-creates files under `basePath` from a multipart/form-data request
+ * (spec 028 contracts/upload-contract.md, FR-001-FR-004, FR-012). Always
+ * responds 200 with a per-file outcome so one file's failure doesn't discard
+ * the rest of the batch (Edge Cases). Each part's raw bytes are passed
+ * straight through to storage — never decoded as text — so binary uploads
+ * survive intact (FR-003).
  */
 export async function POST(request: NextRequest) {
   const authError = await requireOwnerSession();
   if (authError) return authError;
 
-  const body = (await request.json().catch(() => null)) as UploadRequestBody | null;
+  const formData = await request.formData().catch(() => null);
+  const basePath = formData?.get("basePath");
+  const fileEntries = formData?.getAll("files") ?? [];
 
-  if (!body || typeof body.basePath !== "string" || !Array.isArray(body.files)) {
+  if (!formData || typeof basePath !== "string" || fileEntries.length === 0) {
     return NextResponse.json(
-      { code: "invalid_request", message: "basePath (string) and files (array) are required" },
+      { code: "invalid_request", message: "basePath (text field) and at least one files entry are required" },
       { status: 400 },
     );
   }
 
   const results: UploadResult[] = [];
+  const base = basePath.replace(/\/+$/, "");
 
-  for (const entry of body.files) {
-    const relativePath = entry.relativePath;
-    const content = entry.content;
-
-    if (typeof relativePath !== "string" || typeof content !== "string") {
-      results.push({ path: String(relativePath ?? ""), status: "failed", message: "Missing relativePath or content" });
+  for (const entry of fileEntries) {
+    if (!(entry instanceof File)) {
+      results.push({ path: "", status: "failed", message: "Invalid file entry" });
       continue;
     }
 
-    if (!isMarkdownPath(relativePath)) {
-      results.push({ path: relativePath, status: "skipped", message: "Not a Markdown (.md) file" });
-      continue;
-    }
-
-    const base = body.basePath.replace(/\/+$/, "");
+    const relativePath = entry.name;
     const fullPath = normalizeFilePath(base ? `${base}/${relativePath}` : relativePath);
 
+    if (!isAllowedExtension(relativePath)) {
+      results.push({ path: fullPath, status: "failed", message: unsupportedType(relativePath, extensionOf(relativePath)).message });
+      continue;
+    }
+
+    if (entry.size > MAX_UPLOAD_BYTES) {
+      results.push({ path: fullPath, status: "failed", message: tooLarge(relativePath, MAX_UPLOAD_BYTES).message });
+      continue;
+    }
+
     try {
-      await createFile(fullPath, content);
+      const buffer = Buffer.from(await entry.arrayBuffer());
+      const contentType = entry.type || mimeTypeForPath(relativePath);
+      await createFile(fullPath, buffer, contentType);
       results.push({ path: fullPath, status: "uploaded" });
     } catch (err) {
       const storageError =

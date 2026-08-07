@@ -2,27 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireOwnerSession } from "@/lib/oauth/session";
 import { createFile, deleteFile, getFileMetadata, readFile, updateFile } from "@/lib/storage/files";
 import { StorageError } from "@/lib/storage/errors";
+import { isConclusivelyBinaryExtension, looksBinaryContent } from "@/lib/storage/binaryDetection";
 
 const STATUS_BY_CODE: Record<StorageError["code"], number> = {
   not_found: 404,
   type_mismatch: 404,
   already_exists: 409,
   storage_unreachable: 502,
+  unsupported_type: 415,
+  too_large: 413,
+  invalid_content: 400,
 };
-
-const BINARY_EXTENSIONS = new Set([
-  "png", "jpg", "jpeg", "gif", "bmp", "webp", "ico",
-  "pdf", "zip", "tar", "gz", "7z", "rar",
-  "exe", "dll", "so", "bin",
-  "woff", "woff2", "ttf", "otf",
-  "mp3", "mp4", "mov", "avi", "webm", "wav",
-]);
-
-function looksBinary(path: string, content: string): boolean {
-  const extension = path.split(".").pop()?.toLowerCase();
-  if (extension && BINARY_EXTENSIONS.has(extension)) return true;
-  return content.includes("�");
-}
 
 function errorResponse(err: unknown, fallbackMessage: string) {
   const storageError =
@@ -42,15 +32,28 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ code: "not_found", message: "path is required" }, { status: 404 });
   }
 
+  // Extensions that conclusively indicate binary content are rejected before
+  // ever fetching/decoding the object — avoids wastefully decoding up to
+  // 25 MB of binary data as UTF-8 just to discard it (spec 028 research.md §4).
+  if (isConclusivelyBinaryExtension(path)) {
+    return NextResponse.json(
+      { code: "unsupported", message: `"${path}" doesn't look like a text file and can't be edited here` },
+      { status: 422 },
+    );
+  }
+
   try {
     const result = await readFile(path);
-    if (looksBinary(result.path, result.content)) {
+    const content = result.content.toString("utf-8");
+    // Extension didn't conclusively resolve it (no/uncommon extension, or a
+    // mislabeled file) — fall back to content sniffing (FR-009).
+    if (looksBinaryContent(content)) {
       return NextResponse.json(
         { code: "unsupported", message: `"${path}" doesn't look like a text file and can't be edited here` },
         { status: 422 },
       );
     }
-    return NextResponse.json(result);
+    return NextResponse.json({ ...result, content });
   } catch (err) {
     return errorResponse(err, "Unexpected error reading file");
   }
@@ -97,7 +100,7 @@ export async function PUT(request: NextRequest) {
   }
 
   try {
-    const result = await updateFile(body.path, body.content);
+    const result = await updateFile(body.path, Buffer.from(body.content, "utf-8"));
     return NextResponse.json(result);
   } catch (err) {
     return errorResponse(err, "Unexpected error updating file");
@@ -114,7 +117,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const result = await createFile(body.path, body.content ?? "");
+    const result = await createFile(body.path, Buffer.from(body.content ?? "", "utf-8"));
     return NextResponse.json(result, { status: 201 });
   } catch (err) {
     return errorResponse(err, "Unexpected error creating file");

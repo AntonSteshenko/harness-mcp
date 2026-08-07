@@ -77,8 +77,8 @@ export async function initializeCompanyOs(language: SupportedLanguage): Promise<
 
   await createDirectory("os");
   await createDirectory("data");
-  await createFile("AGENTS.md", AGENTS_MD_STUBS[language]);
-  await createFile("os/language", language);
+  await createFile("AGENTS.md", Buffer.from(AGENTS_MD_STUBS[language], "utf-8"));
+  await createFile("os/language", Buffer.from(language, "utf-8"));
 
   return { created: true };
 }

@@ -98,7 +98,7 @@ export async function registerTreeTools(server: McpServer, disabledTools: Readon
         for (const file of markdownFiles) {
           let content: string;
           try {
-            content = (await readFile(file.path)).content;
+            content = (await readFile(file.path)).content.toString("utf-8");
           } catch {
             continue; // skip files that can't be read/decoded (FR-007) rather than failing the whole search
           }

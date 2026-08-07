@@ -2,7 +2,10 @@ export type StorageErrorCode =
   | "not_found"
   | "type_mismatch"
   | "already_exists"
-  | "storage_unreachable";
+  | "storage_unreachable"
+  | "unsupported_type"
+  | "too_large"
+  | "invalid_content";
 
 export class StorageError extends Error {
   code: StorageErrorCode;
@@ -52,6 +55,25 @@ export function alreadyExists(path: string): StorageError {
     "already_exists",
     `An entry of a different type already exists at "${path}"`,
   );
+}
+
+export function unsupportedType(path: string, extension: string): StorageError {
+  return new StorageError(
+    "unsupported_type",
+    `File type ".${extension}" isn't supported here`,
+  );
+}
+
+export function tooLarge(path: string, maxBytes: number): StorageError {
+  const maxMb = Math.floor(maxBytes / (1024 * 1024));
+  return new StorageError(
+    "too_large",
+    `"${path}" is larger than the ${maxMb} MB upload limit`,
+  );
+}
+
+export function invalidContent(path: string, reason: string): StorageError {
+  return new StorageError("invalid_content", `"${path}": ${reason}`);
 }
 
 /**

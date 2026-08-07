@@ -97,7 +97,7 @@ export const ru: Dictionary = {
       invalidName: (name) => `«${name}» не может содержать «/» — введите простое имя.`,
       nothingToUpload: "Нечего загружать.",
       nothingToUploadFiltered: (skipped) =>
-        `Нечего загружать — ни один из ${skipped} выбранных файлов не является файлом Markdown (.md).`,
+        `Нечего загружать — ни один из ${skipped} выбранных файлов не имеет поддерживаемого типа.`,
       overwriteFilesConfirm: (names) => `Это перезапишет существующие файлы: ${names}. Продолжить?`,
       uploadFailed: (message) => `Загрузка не удалась: ${message}`,
       uploadFailedLabel: "Загрузка не удалась",
@@ -130,6 +130,7 @@ export const ru: Dictionary = {
       discardConfirm: "У вас есть несохранённые изменения. Отменить их и открыть другой файл?",
       loadFailed: "Не удалось загрузить файл",
       openedPathIsFolder: (path) => `«${path}» — это папка, а не файл.`,
+      openOrDownload: "Открыть / Скачать",
       externalChangeMessage: "Этот файл был изменён извне.",
       externalChangeReload: "Загрузить внешнюю версию",
       externalChangeKeepMine: "Оставить мою версию",

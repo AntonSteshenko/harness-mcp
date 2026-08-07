@@ -5,14 +5,21 @@ import type { CSSProperties, ReactNode } from "react";
 import useSWR from "swr";
 import { authedFetch } from "@/lib/editorFetch";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
+import { ALL_ALLOWED_EXTENSIONS, categoryForPath, isAllowedExtension } from "@/lib/storage/fileTypes";
 import {
   ChevronIcon,
+  DiagramIcon,
+  DocumentIcon,
   DownloadIcon,
   FileIcon,
   FolderIcon,
+  ImageIcon,
   KebabIcon,
+  MarkupIcon,
   NewFileIcon,
   NewFolderIcon,
+  PdfIcon,
+  SpreadsheetIcon,
   TrashIcon,
   UploadIcon,
 } from "./Icons";
@@ -84,16 +91,34 @@ function baseName(path: string): string {
   return segments[segments.length - 1] || path;
 }
 
+/** Picks a file row's icon by category (spec 028 FR-005), falling back to
+ * the generic FileIcon for the archive category and anything unrecognized
+ * (FR-006). "document" splits further by extension: PDF gets its own icon,
+ * doc/docx share DocumentIcon (data-model.md's category table). */
+function iconForPath(path: string) {
+  const category = categoryForPath(path);
+  switch (category) {
+    case "document":
+      return path.toLowerCase().endsWith(".pdf") ? <PdfIcon /> : <DocumentIcon />;
+    case "spreadsheet":
+      return <SpreadsheetIcon />;
+    case "image":
+      return <ImageIcon />;
+    case "diagram":
+      return <DiagramIcon />;
+    case "markup":
+      return <MarkupIcon />;
+    default:
+      return <FileIcon />;
+  }
+}
+
 /** Joins a directory path (possibly already trailing-slash-terminated, as
  * returned by S3 CommonPrefixes) with a child name, without producing a
  * double slash. */
 function joinPath(dirPath: string, name: string): string {
   const trimmed = dirPath.replace(/\/+$/, "");
   return trimmed === "" ? name : `${trimmed}/${name}`;
-}
-
-function isMarkdownFile(name: string): boolean {
-  return name.toLowerCase().endsWith(".md");
 }
 
 /** Prompts for a new file/folder name, rejecting path separators and
@@ -306,28 +331,26 @@ function DirectoryNode({
     if (!fileList || fileList.length === 0) return;
 
     const picked = Array.from(fileList);
-    const mdFiles = picked.filter((f) => isMarkdownFile(f.name));
-    const skippedCount = picked.length - mdFiles.length;
+    const allowedFiles = picked.filter((f) => isAllowedExtension(f.name));
+    const skippedCount = picked.length - allowedFiles.length;
 
-    if (mdFiles.length === 0) {
+    if (allowedFiles.length === 0) {
       window.alert(skippedCount > 0 ? dict.nothingToUploadFiltered(skippedCount) : dict.nothingToUpload);
       return;
     }
 
-    const batch = await Promise.all(
-      mdFiles.map(async (file) => ({
-        relativePath: mode === "folder" ? file.webkitRelativePath || file.name : file.name,
-        content: await file.text(),
-      })),
-    );
+    const relativePathFor = (file: File) => (mode === "folder" ? file.webkitRelativePath || file.name : file.name);
 
     // Only top-level filenames are checked, since this directory's cached
     // listing has no visibility into nested subfolders a folder upload
     // might target (research.md §5).
     const existingNames = new Set((entries?.files ?? []).map((f) => baseName(f.path)));
-    const conflicts = batch.filter((f) => !f.relativePath.includes("/") && existingNames.has(f.relativePath));
+    const conflicts = allowedFiles.filter((f) => {
+      const relativePath = relativePathFor(f);
+      return !relativePath.includes("/") && existingNames.has(relativePath);
+    });
     if (conflicts.length > 0) {
-      const names = conflicts.map((f) => f.relativePath).join(", ");
+      const names = conflicts.map(relativePathFor).join(", ");
       if (!window.confirm(dict.overwriteFilesConfirm(names))) {
         return;
       }
@@ -335,11 +358,16 @@ function DirectoryNode({
 
     setBusy(true);
     try {
-      const res = await authedFetch("/api/upload", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ basePath: path, files: batch }),
-      });
+      // multipart/form-data (not JSON) so binary content transfers byte-for-byte
+      // (spec 028 research.md §1) — the browser sets its own Content-Type with
+      // the multipart boundary, so none is set explicitly here.
+      const formData = new FormData();
+      formData.set("basePath", path);
+      for (const file of allowedFiles) {
+        formData.append("files", file, relativePathFor(file));
+      }
+
+      const res = await authedFetch("/api/upload", { method: "POST", body: formData });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? dict.uploadFailedLabel);
 
@@ -523,7 +551,7 @@ function DirectoryNode({
         <input
           ref={uploadFilesInputRef}
           type="file"
-          accept=".md"
+          accept={ALL_ALLOWED_EXTENSIONS.map((ext) => `.${ext}`).join(",")}
           multiple
           style={{ display: "none" }}
           onChange={(e) => {
@@ -577,7 +605,7 @@ function DirectoryNode({
               }}
               onClick={() => onSelectFile(f.path)}
             >
-              <FileIcon />
+              {iconForPath(f.path)}
               <span style={{ ...labelStyle, flex: 1, minWidth: 0 }}>{baseName(f.path)}</span>
               <RowMenu
                 items={[

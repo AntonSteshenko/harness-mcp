@@ -50,6 +50,75 @@ export function FileIcon() {
   );
 }
 
+/** Shared file-outline silhouette used by every category icon below, so they
+ * read as "a file" first and differ only by accent color + one small glyph
+ * (spec 028 FR-005, FR-006). */
+const FILE_OUTLINE_PATH = "M6 2h8l5 5v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z";
+const FILE_FOLD_PATH = "M14 2v5h5";
+
+export function PdfIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d64545" strokeWidth={2} style={{ flexShrink: 0 }}>
+      <path d={FILE_OUTLINE_PATH} strokeLinejoin="round" />
+      <path d={FILE_FOLD_PATH} strokeLinejoin="round" />
+      <rect x="6" y="15" width="9" height="4" rx="1" fill="#d64545" stroke="none" />
+    </svg>
+  );
+}
+
+export function DocumentIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4a7fd6" strokeWidth={2} style={{ flexShrink: 0 }}>
+      <path d={FILE_OUTLINE_PATH} strokeLinejoin="round" />
+      <path d={FILE_FOLD_PATH} strokeLinejoin="round" />
+      <path d="M8 12h8M8 15h8M8 18h5" strokeWidth={1.4} strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function SpreadsheetIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3f9142" strokeWidth={2} style={{ flexShrink: 0 }}>
+      <path d={FILE_OUTLINE_PATH} strokeLinejoin="round" />
+      <path d={FILE_FOLD_PATH} strokeLinejoin="round" />
+      <path d="M7 12.5h10M7 15.5h10M7 18.5h10M10.3 11v8M14.7 11v8" strokeWidth={1.1} strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function ImageIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c77b2e" strokeWidth={2} style={{ flexShrink: 0 }}>
+      <path d={FILE_OUTLINE_PATH} strokeLinejoin="round" />
+      <path d={FILE_FOLD_PATH} strokeLinejoin="round" />
+      <circle cx="9.5" cy="12.5" r="1.3" fill="#c77b2e" stroke="none" />
+      <path d="M6.5 18l3.5-3.5 2.5 2.5 3-4 2.5 5" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function DiagramIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2e9c94" strokeWidth={2} style={{ flexShrink: 0 }}>
+      <path d={FILE_OUTLINE_PATH} strokeLinejoin="round" />
+      <path d={FILE_FOLD_PATH} strokeLinejoin="round" />
+      <circle cx="8.5" cy="13" r="1.4" strokeWidth={1.3} />
+      <circle cx="15.5" cy="18" r="1.4" strokeWidth={1.3} />
+      <path d="M9.7 14.2l4.3 2.7" strokeWidth={1.3} strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function MarkupIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5b6b7a" strokeWidth={2} style={{ flexShrink: 0 }}>
+      <path d={FILE_OUTLINE_PATH} strokeLinejoin="round" />
+      <path d={FILE_FOLD_PATH} strokeLinejoin="round" />
+      <path d="M9.5 12.5l-2.2 2.5 2.2 2.5M14.5 12.5l2.2 2.5-2.2 2.5" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function UploadIcon() {
   return (
     <svg

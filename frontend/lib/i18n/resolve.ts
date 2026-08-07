@@ -17,7 +17,7 @@ const LANGUAGE_MARKER_PATH = "os/language";
 export async function getSystemLanguage(): Promise<SupportedLanguage | null> {
   try {
     const { content } = await readFile(LANGUAGE_MARKER_PATH);
-    const code = content.trim();
+    const code = content.toString("utf-8").trim();
     return isSupportedLanguage(code) ? code : null;
   } catch (err) {
     if (err instanceof StorageError && err.code === "not_found") {
