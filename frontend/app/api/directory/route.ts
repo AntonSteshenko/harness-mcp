@@ -10,7 +10,6 @@ const STATUS_BY_CODE: Record<StorageError["code"], number> = {
   storage_unreachable: 502,
   unsupported_type: 415,
   too_large: 413,
-  invalid_content: 400,
 };
 
 function errorResponse(err: unknown, fallbackMessage: string) {

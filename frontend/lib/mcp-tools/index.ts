@@ -1,8 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { createDirectory, deleteDirectory, listDirectory } from "@/lib/storage/directories";
-import { isConclusivelyBinaryExtension, looksBinaryContent } from "@/lib/storage/binaryDetection";
-import { invalidContent } from "@/lib/storage/errors";
 import { createFile, deleteFile, readFile, updateFile } from "@/lib/storage/files";
 import { move } from "@/lib/storage/move";
 import { buildEntryDescription, buildWriteDescription, getBootstrapFraming } from "./bootstrap";
@@ -50,8 +48,7 @@ export async function registerTools(server: McpServer, disabledTools: ReadonlySe
     {
       title: "Read File",
       description: buildEntryDescription(
-        "Reads the full current content of the file at path. Fails with invalid_content if the file is " +
-          "binary (e.g. PDF, image, Office document) — use read_binary_file for those instead.",
+        "Reads the full current content of the file at path.",
         framing,
       ),
       inputSchema: {
@@ -59,23 +56,9 @@ export async function registerTools(server: McpServer, disabledTools: ReadonlySe
       },
     },
     async ({ path }) => {
-      // Extensions that conclusively indicate binary content are rejected
-      // before ever fetching/decoding the object (spec 028 research.md §4,
-      // spec 029 FR-010) — mirrors GET /api/file's guard exactly, via the
-      // shared lib/storage/binaryDetection.ts.
-      if (isConclusivelyBinaryExtension(path)) {
-        return errorResult(invalidContent(path, "file is binary and can't be read as text — use read_binary_file instead"));
-      }
-
       try {
         const result = await readFile(path);
-        const content = result.content.toString("utf-8");
-        // Extension didn't conclusively resolve it — fall back to content
-        // sniffing (FR-009 in spec 028, reused here).
-        if (looksBinaryContent(content)) {
-          return errorResult(invalidContent(path, "file is binary and can't be read as text — use read_binary_file instead"));
-        }
-        return ok({ ...result, content });
+        return ok({ ...result, content: result.content.toString("utf-8") });
       } catch (err) {
         return errorResult(err);
       }

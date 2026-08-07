@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireOwnerSession } from "@/lib/oauth/session";
 import { createFile, deleteFile, getFileMetadata, readFile, updateFile } from "@/lib/storage/files";
 import { StorageError } from "@/lib/storage/errors";
-import { isConclusivelyBinaryExtension, looksBinaryContent } from "@/lib/storage/binaryDetection";
 
 const STATUS_BY_CODE: Record<StorageError["code"], number> = {
   not_found: 404,
@@ -11,8 +10,25 @@ const STATUS_BY_CODE: Record<StorageError["code"], number> = {
   storage_unreachable: 502,
   unsupported_type: 415,
   too_large: 413,
-  invalid_content: 400,
 };
+
+const BINARY_EXTENSIONS = new Set([
+  "png", "jpg", "jpeg", "gif", "bmp", "webp", "ico",
+  "pdf", "zip", "tar", "gz", "7z", "rar",
+  "exe", "dll", "so", "bin",
+  "woff", "woff2", "ttf", "otf",
+  "mp3", "mp4", "mov", "avi", "webm", "wav",
+  "doc", "docx", "xls", "xlsx",
+]);
+
+function isConclusivelyBinaryExtension(path: string): boolean {
+  const extension = path.split(".").pop()?.toLowerCase();
+  return !!extension && BINARY_EXTENSIONS.has(extension);
+}
+
+function looksBinaryContent(content: string): boolean {
+  return content.includes("�");
+}
 
 function errorResponse(err: unknown, fallbackMessage: string) {
   const storageError =

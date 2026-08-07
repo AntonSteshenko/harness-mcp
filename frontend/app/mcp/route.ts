@@ -1,6 +1,5 @@
 import { createMcpHandler, withMcpAuth } from "mcp-handler";
 import { registerTools } from "@/lib/mcp-tools";
-import { registerBinaryFileTools } from "@/lib/mcp-tools/binaryFileTools";
 import { registerEngineTools } from "@/lib/mcp-tools/engineTools";
 import { registerInboxTools } from "@/lib/mcp-tools/inboxTools";
 import { registerMessagingTools } from "@/lib/mcp-tools/messagingTools";
@@ -26,7 +25,6 @@ const handler = createMcpHandler(
     await registerMessagingTools(server, disabledTools);
     await registerInboxTools(server, disabledTools);
     await registerTreeTools(server, disabledTools);
-    await registerBinaryFileTools(server, disabledTools);
   },
   {
     serverInfo,

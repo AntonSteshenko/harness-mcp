@@ -4,8 +4,7 @@ export type StorageErrorCode =
   | "already_exists"
   | "storage_unreachable"
   | "unsupported_type"
-  | "too_large"
-  | "invalid_content";
+  | "too_large";
 
 export class StorageError extends Error {
   code: StorageErrorCode;
@@ -70,10 +69,6 @@ export function tooLarge(path: string, maxBytes: number): StorageError {
     "too_large",
     `"${path}" is larger than the ${maxMb} MB upload limit`,
   );
-}
-
-export function invalidContent(path: string, reason: string): StorageError {
-  return new StorageError("invalid_content", `"${path}": ${reason}`);
 }
 
 /**

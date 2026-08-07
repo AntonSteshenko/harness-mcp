@@ -21,8 +21,6 @@ export const TOOL_CATALOG: ToolCatalogEntry[] = [
   { name: "delete_directory", group: "File & Directory" },
   { name: "update_file", group: "File & Directory" },
   { name: "move", group: "File & Directory" },
-  { name: "create_binary_file", group: "File & Directory" },
-  { name: "read_binary_file", group: "File & Directory" },
   { name: "get_os_engine", group: "Engine" },
   { name: "get_os_upgrade", group: "Engine" },
   { name: "get_os_init", group: "Engine" },
